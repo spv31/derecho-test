@@ -39,7 +39,7 @@ class TestContract:
             elif path == "/api/subjects":
                 resp = client.post(path, json={"name": "test"}, headers=auth_header)
             elif path.endswith("/documents"):
-                resp = client.post(path, files={"file": ("test.pdf", b"dummy", "application/pdf")},
+                resp = client.post(path, files=[("files", ("test.pdf", b"dummy", "application/pdf"))],
                                    headers=auth_header)
             elif path.endswith("/exams/generate"):
                 resp = client.post(path, json={"document_ids": ["d1"], "question_count": 5},

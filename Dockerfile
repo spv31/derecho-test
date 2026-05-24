@@ -7,8 +7,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN mkdir -p data && adduser --disabled-password --no-create-home appuser && chown appuser:appuser data
+RUN adduser --disabled-password --no-create-home appuser
 USER appuser
+
+ENV DATA_DIR=/data
 
 EXPOSE 8080
 
