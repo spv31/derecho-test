@@ -1,6 +1,6 @@
-import { state } from '../state.js?v=1';
-import { $, escapeHtml, showLoading, showToast } from '../utils.js?v=1';
-import { getExam } from '../api.js?v=1';
+import { state } from '../state.js?v=2';
+import { $, escapeHtml, showLoading, showToast, formatDate } from '../utils.js?v=2';
+import { getExam } from '../api.js?v=2';
 
 export async function showExam(examId) {
   state.currentExamId = examId;
@@ -20,7 +20,7 @@ export async function showExam(examId) {
 
 function renderExam(exam) {
   const title = exam.title || 'Examen';
-  const meta = `${exam.questions.length} preguntas · ${new Date(exam.created_at).toLocaleDateString()}`;
+  const meta = `${exam.questions.length} preguntas · ${formatDate(exam.created_at)}`;
 
   let questionsHtml = '';
   exam.questions.forEach((q, i) => {

@@ -1,6 +1,6 @@
-import { state } from '../state.js?v=1';
-import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal } from '../utils.js?v=1';
-import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam } from '../api.js?v=1';
+import { state } from '../state.js?v=2';
+import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal, formatDate } from '../utils.js?v=2';
+import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam } from '../api.js?v=2';
 
 export async function showSubject(subjectId, subjectName) {
   state.currentSubjectId = subjectId;
@@ -154,7 +154,7 @@ function renderExams(exams) {
     el.innerHTML = `
       <div>
         <h4 class="text-sm font-medium">${escapeHtml(exam.title)}</h4>
-        <p class="text-xs text-brand-muted mt-0.5">${exam.question_count} preguntas &middot; ${new Date(exam.created_at).toLocaleDateString()}</p>
+        <p class="text-xs text-brand-muted mt-0.5">${exam.question_count} preguntas &middot; ${formatDate(exam.created_at)}</p>
       </div>
       <svg class="w-4 h-4 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
     `;

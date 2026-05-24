@@ -123,3 +123,10 @@ export const ERROR_MESSAGES = {
 
 export const NETWORK_ERROR = 'No hemos podido conectar con el servidor. Comprueba tu conexión.';
 export const UNKNOWN_ERROR = 'Ha ocurrido un error inesperado. Inténtalo de nuevo.';
+
+export function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const normalized = typeof dateStr === 'string' ? dateStr.replace(' ', 'T') : dateStr;
+  const d = new Date(normalized);
+  return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-ES');
+}
