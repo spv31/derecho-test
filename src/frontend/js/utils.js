@@ -14,9 +14,9 @@ export function escapeHtml(str) {
 
 export function showToast(message, type = 'info') {
   const color = type === 'error'
-    ? 'border-red-500/80 bg-red-950 text-red-300'
+    ? 'border-red-500/50 bg-red-50 text-red-800 dark:border-red-500/80 dark:bg-red-950 dark:text-red-300'
     : type === 'success'
-      ? 'border-emerald-500/80 bg-emerald-950 text-emerald-300'
+      ? 'border-emerald-500/50 bg-emerald-50 text-emerald-800 dark:border-emerald-500/80 dark:bg-emerald-950 dark:text-emerald-300'
       : 'border-brand-accent/50 bg-brand-surface text-brand-text';
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');

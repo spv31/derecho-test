@@ -1,6 +1,6 @@
-import { state } from '../state.js?v=4';
-import { $, escapeHtml, showLoading, showToast } from '../utils.js?v=4';
-import { getExam } from '../api.js?v=4';
+import { state } from '../state.js?v=1';
+import { $, escapeHtml, showLoading, showToast } from '../utils.js?v=1';
+import { getExam } from '../api.js?v=1';
 
 export async function showExam(examId) {
   state.currentExamId = examId;

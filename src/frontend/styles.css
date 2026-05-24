@@ -108,3 +108,18 @@ button:focus-visible {
 .sidebar-reopen-btn.visible + main {
   padding-left: 3.5rem;
 }
+
+/* Thin scrollbar for doc-selector */
+#doc-selector::-webkit-scrollbar {
+  width: 4px;
+}
+#doc-selector::-webkit-scrollbar-track {
+  background: transparent;
+}
+#doc-selector::-webkit-scrollbar-thumb {
+  background: rgb(var(--brand-border));
+  border-radius: 2px;
+}
+#doc-selector::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--brand-muted));
+}

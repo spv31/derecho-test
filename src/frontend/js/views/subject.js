@@ -1,6 +1,6 @@
-import { state } from '../state.js?v=4';
-import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal } from '../utils.js?v=4';
-import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam } from '../api.js?v=4';
+import { state } from '../state.js?v=1';
+import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal } from '../utils.js?v=1';
+import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam } from '../api.js?v=1';
 
 export async function showSubject(subjectId, subjectName) {
   state.currentSubjectId = subjectId;
@@ -23,7 +23,7 @@ function getSubjectHtml(subjectName) {
       <div class="mb-8">
         <h3 class="font-display text-sm font-semibold text-brand-muted mb-3">Documentos</h3>
 
-        <div id="upload-zone" class="border-2 border-dashed border-brand-border rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-brand-accent/50 mb-4">
+        <div id="upload-zone" class="border-2 border-dashed border-brand-border rounded-lg bg-brand-surface/50 p-6 text-center cursor-pointer transition-colors hover:border-brand-accent/50 mb-4">
           <svg class="w-8 h-8 mx-auto mb-2 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
           <p class="text-brand-muted text-sm">Arrastra aquí tus apuntes (PDF o PPTX) o haz clic para subirlos</p>
           <input id="file-input" type="file" accept=".pdf,.pptx" multiple class="hidden" />
@@ -148,7 +148,7 @@ function renderExams(exams) {
   empty.classList.add('hidden');
   exams.forEach(exam => {
     const el = document.createElement('div');
-    el.className = 'bg-brand-surface border border-brand-border rounded-lg px-4 py-3 flex items-center justify-between hover:border-brand-accent/50 transition-colors cursor-pointer';
+    el.className = 'bg-brand-surface border border-brand-border rounded-lg px-4 py-3 flex items-center justify-between hover:border-brand-accent/50 transition-colors cursor-pointer hover:bg-brand-accent/5';
     el.setAttribute('data-nav', 'exam');
     el.setAttribute('data-exam-id', exam.id);
     el.innerHTML = `

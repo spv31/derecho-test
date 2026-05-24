@@ -1,11 +1,11 @@
-import { state } from './state.js?v=4';
-import { $ } from './utils.js?v=4';
-import { getSubjects, deleteSubject } from './api.js?v=4';
-import { renderLogin } from './views/login.js?v=4';
-import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js?v=4';
-import { renderSubjectsList } from './views/sidebar.js?v=4';
-import { showSubject } from './views/subject.js?v=4';
-import { showExam } from './views/exam.js?v=4';
+import { state } from './state.js?v=1';
+import { $, showConfirmModal, showToast } from './utils.js?v=1';
+import { getSubjects, deleteSubject } from './api.js?v=1';
+import { renderLogin } from './views/login.js?v=1';
+import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js?v=1';
+import { renderSubjectsList } from './views/sidebar.js?v=1';
+import { showSubject } from './views/subject.js?v=1';
+import { showExam } from './views/exam.js?v=1';
 
 /* ── Boot ── */
 
@@ -49,7 +49,17 @@ function wireSidebarClicks() {
     if (delBtn) {
       e.stopPropagation();
       const id = delBtn.dataset.id;
-      await deleteSubject(id);
+      const name = delBtn.closest('[data-nav="subject"]')?.dataset?.name || 'esta asignatura';
+      const confirmed = await showConfirmModal({
+        title: 'Eliminar asignatura',
+        message: `¿Seguro que quieres eliminar "${name}"? Se borrarán también todos sus documentos y exámenes.`,
+        confirmText: 'Eliminar',
+        confirmClass: 'bg-brand-error hover:bg-red-700',
+      });
+      if (!confirmed) return;
+      const result = await deleteSubject(id);
+      if (result === null) return;
+      showToast(`Asignatura "${name}" eliminada`, 'success');
       await refreshSidebar();
       if (state.currentSubjectId === id) {
         state.currentSubjectId = null;

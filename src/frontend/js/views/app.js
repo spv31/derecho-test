@@ -1,6 +1,6 @@
-import { $ } from "../utils.js?v=4";
-import { createSubject } from "../api.js?v=4";
-import { logout } from "../auth.js?v=4";
+import { $ } from "../utils.js?v=1";
+import { createSubject } from "../api.js?v=1";
+import { logout } from "../auth.js?v=1";
 
 let initialized = false;
 
@@ -134,71 +134,6 @@ function setupSidebar() {
 
 /* ── Settings dropdown ── */
 
-function updateThemeUI() {
-  const isDark = document.documentElement.classList.contains("dark");
-  const sunIcon = $("#theme-icon-sun");
-  const moonIcon = $("#theme-icon-moon");
-  const label = $("#theme-toggle-label");
-  if (isDark) {
-    sunIcon.classList.remove("hidden");
-    moonIcon.classList.add("hidden");
-    label.textContent = "Modo claro";
-  } else {
-    sunIcon.classList.add("hidden");
-    moonIcon.classList.remove("hidden");
-    label.textContent = "Modo oscuro";
-  }
-}
-
-/*
-function setupSettingsMenu() {
-  const btn = $('#settings-btn');
-  const menu = $('#settings-menu');
-  const logoutBtn = $('#logout-btn');
-  const themeBtn = $('#theme-toggle-btn');
-  if (!btn || !menu || !logoutBtn) return;
-
-  updateThemeUI();
-
-  btn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    menu.classList.toggle('hidden');
-  });
-
-  if (themeBtn) {
-    themeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isDark = document.documentElement.classList.contains('dark');
-      if (isDark) {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      } else {
-        document.documentElement.classList.add('dark');
-        localStorage.setItem('theme', 'dark');
-      }
-      updateThemeUI();
-      menu.classList.add('hidden');
-    });
-  }
-
-  logoutBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    menu.classList.add('hidden');
-    logout();
-  });
-
-  document.addEventListener('click', (e) => {
-    if (!menu.contains(e.target) && !btn.contains(e.target)) {
-      menu.classList.add('hidden');
-    }
-  });
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') menu.classList.add('hidden');
-  });
-}
-  */
 /* ── Settings dropdown ── */
 
 function setupSettingsMenu() {
