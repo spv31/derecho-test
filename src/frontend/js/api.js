@@ -1,5 +1,5 @@
-import { state } from './state.js?v=3';
-import { ERROR_MESSAGES, NETWORK_ERROR, UNKNOWN_ERROR, showToast } from './utils.js?v=3';
+import { state } from './state.js?v=4';
+import { ERROR_MESSAGES, NETWORK_ERROR, UNKNOWN_ERROR, showToast } from './utils.js?v=4';
 
 export async function apiFetch(url, options = {}, errorContext) {
   const headers = options.headers || {};

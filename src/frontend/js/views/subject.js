@@ -1,6 +1,6 @@
-import { state } from '../state.js?v=3';
-import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal } from '../utils.js?v=3';
-import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam } from '../api.js?v=3';
+import { state } from '../state.js?v=4';
+import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal } from '../utils.js?v=4';
+import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam } from '../api.js?v=4';
 
 export async function showSubject(subjectId, subjectName) {
   state.currentSubjectId = subjectId;

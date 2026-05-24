@@ -1,11 +1,11 @@
-import { state } from './state.js?v=3';
-import { $ } from './utils.js?v=3';
-import { getSubjects, deleteSubject } from './api.js?v=3';
-import { renderLogin } from './views/login.js?v=3';
-import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js?v=3';
-import { renderSubjectsList } from './views/sidebar.js?v=3';
-import { showSubject } from './views/subject.js?v=3';
-import { showExam } from './views/exam.js?v=3';
+import { state } from './state.js?v=4';
+import { $ } from './utils.js?v=4';
+import { getSubjects, deleteSubject } from './api.js?v=4';
+import { renderLogin } from './views/login.js?v=4';
+import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js?v=4';
+import { renderSubjectsList } from './views/sidebar.js?v=4';
+import { showSubject } from './views/subject.js?v=4';
+import { showExam } from './views/exam.js?v=4';
 
 /* ── Boot ── */
 
