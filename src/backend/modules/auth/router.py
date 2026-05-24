@@ -67,7 +67,7 @@ def auth_google(body: GoogleAuthRequest, db: Session = Depends(get_db)):
 
     now = datetime.now(timezone.utc)
     token = jwt.encode(
-        {"sub": user.id, "exp": now + timedelta(hours=24)},
+        {"sub": user.id, "exp": now + timedelta(hours=2)},
         settings.jwt_secret,
         algorithm="HS256",
     )
