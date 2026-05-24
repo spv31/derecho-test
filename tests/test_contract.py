@@ -5,17 +5,17 @@ from fastapi.testclient import TestClient
 ROUTES = [
     ("GET", "/api/health", 200),
     ("GET", "/api/config", 200),
-    ("POST", "/api/auth/google", 501),
-    ("GET", "/api/subjects", 501),
-    ("POST", "/api/subjects", 501),
-    ("DELETE", "/api/subjects/test-id", 501),
-    ("GET", "/api/subjects/test-id/documents", 501),
-    ("POST", "/api/subjects/test-id/documents", 501),
-    ("DELETE", "/api/documents/test-id", 501),
-    ("GET", "/api/subjects/test-id/exams", 501),
-    ("POST", "/api/subjects/test-id/exams/generate", 501),
-    ("GET", "/api/exams/test-id", 501),
-    ("DELETE", "/api/exams/test-id", 501),
+    ("POST", "/api/auth/google", 401),
+    ("GET", "/api/subjects", 401),
+    ("POST", "/api/subjects", 401),
+    ("DELETE", "/api/subjects/test-id", 401),
+    ("GET", "/api/subjects/test-id/documents", 401),
+    ("POST", "/api/subjects/test-id/documents", 401),
+    ("DELETE", "/api/documents/test-id", 401),
+    ("GET", "/api/subjects/test-id/exams", 401),
+    ("POST", "/api/subjects/test-id/exams/generate", 401),
+    ("GET", "/api/exams/test-id", 401),
+    ("DELETE", "/api/exams/test-id", 401),
 ]
 
 

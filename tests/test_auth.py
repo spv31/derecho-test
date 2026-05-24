@@ -158,5 +158,4 @@ class TestAuthDependencies:
 
         resp = client.get("/api/subjects", headers={"Authorization": f"Bearer {token}"})
 
-        # subjects router still returns 501 — the point is auth passed (not 401)
-        assert resp.status_code == 501
+        assert resp.status_code != 401
