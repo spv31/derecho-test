@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 from sqlalchemy.orm import Session
 from src.backend.core.db import get_db
@@ -16,7 +16,7 @@ class SubjectOut(BaseModel):
 
 
 class SubjectCreate(BaseModel):
-    name: str
+    name: str = Field(..., min_length=1, max_length=200)
 
 
 @router.get("/api/subjects", response_model=List[SubjectOut])
