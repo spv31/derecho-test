@@ -1,6 +1,6 @@
-import { $ } from '../utils.js';
-import { createSubject } from '../api.js';
-import { logout } from '../auth.js';
+import { $ } from '../utils.js?v=3';
+import { createSubject } from '../api.js?v=3';
+import { logout } from '../auth.js?v=3';
 
 let initialized = false;
 
