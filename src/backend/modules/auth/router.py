@@ -1,6 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from datetime import datetime, timedelta, timezone
+
+import requests
+from fastapi import APIRouter, Depends, HTTPException
+from google.oauth2 import id_token as google_id_token
+from jose import jwt
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from src.backend.core.config import settings
+from src.backend.core.db import get_db
+from src.backend.core.models import User, generate_uuid
 
 router = APIRouter()
 
@@ -27,6 +36,39 @@ def config():
     return ConfigResponse(google_client_id=settings.google_client_id)
 
 
-@router.post("/api/auth/google")
-def auth_google(body: GoogleAuthRequest):
-    raise HTTPException(status_code=501, detail="Not Implemented")
+@router.post("/api/auth/google", response_model=GoogleAuthResponse)
+def auth_google(body: GoogleAuthRequest, db: Session = Depends(get_db)):
+    try:
+        info = google_id_token.verify_oauth2_token(
+            body.id_token, requests.Request(), audience=settings.google_client_id
+        )
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid or expired Google ID token")
+
+    google_sub = info.get("sub")
+    email = info.get("email")
+    name = info.get("name")
+
+    if not email or email not in settings.allowed_emails_list:
+        raise HTTPException(status_code=403, detail="Email not in allowlist")
+
+    user = db.query(User).filter(User.google_sub == google_sub).first()
+    if not user:
+        user = User(
+            id=generate_uuid(),
+            google_sub=google_sub,
+            email=email,
+            name=name,
+            created_at=datetime.now(timezone.utc).isoformat(),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    now = datetime.now(timezone.utc)
+    token = jwt.encode(
+        {"sub": user.id, "exp": now + timedelta(hours=24)},
+        settings.jwt_secret,
+        algorithm="HS256",
+    )
+    return GoogleAuthResponse(token=token)
