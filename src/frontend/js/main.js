@@ -38,13 +38,9 @@ function wireSidebarClicks() {
   if (!list) return;
 
   list.addEventListener('click', async (e) => {
-    const subjectItem = e.target.closest('[data-nav="subject"]');
-    if (subjectItem) {
-      const { id, name } = subjectItem.dataset;
-      if (id && name) await navigateToSubject(id, name);
-      return;
-    }
-
+    // Check delete button FIRST — it lives inside [data-nav="subject"] so it
+    // must be matched before the subject-navigation check, otherwise the parent
+    // match wins and the delete handler is never reached.
     const delBtn = e.target.closest('[data-action="delete-subject"]');
     if (delBtn) {
       e.stopPropagation();
@@ -66,6 +62,13 @@ function wireSidebarClicks() {
         state.currentSubjectName = null;
         showEmptyState();
       }
+      return;
+    }
+
+    const subjectItem = e.target.closest('[data-nav="subject"]');
+    if (subjectItem) {
+      const { id, name } = subjectItem.dataset;
+      if (id && name) await navigateToSubject(id, name);
     }
   });
 }
