@@ -21,14 +21,14 @@
         extend: {
           colors: {
             brand: {
-              bg: "var(--brand-bg)",
-              surface: "var(--brand-surface)",
-              border: "var(--brand-border)",
-              accent: "var(--brand-accent)",
-              "accent-h": "var(--brand-accent-h)",
-              text: "var(--brand-text)",
-              muted: "var(--brand-muted)",
-              error: "var(--brand-error)",
+              bg: "rgb(var(--brand-bg) / <alpha-value>)",
+              surface: "rgb(var(--brand-surface) / <alpha-value>)",
+              border: "rgb(var(--brand-border) / <alpha-value>)",
+              accent: "rgb(var(--brand-accent) / <alpha-value>)",
+              "accent-h": "rgb(var(--brand-accent-h) / <alpha-value>)",
+              text: "rgb(var(--brand-text) / <alpha-value>)",
+              muted: "rgb(var(--brand-muted) / <alpha-value>)",
+              error: "rgb(var(--brand-error) / <alpha-value>)",
             },
           },
           fontFamily: {
@@ -40,7 +40,7 @@
       },
     };
   </script>
-  <link rel="stylesheet" href="./styles.css?v=2" />
+  <link rel="stylesheet" href="./styles.css?v=3" />
 </head>
 <body class="min-h-screen bg-brand-bg text-brand-text font-sans antialiased leading-relaxed">
 
@@ -144,6 +144,6 @@
   </div>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script type="module" src="./js/main.js?v=2"></script>
+  <script type="module" src="./js/main.js?v=3"></script>
 </body>
 </html>
