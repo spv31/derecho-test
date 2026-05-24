@@ -40,3 +40,8 @@ input:focus, button:focus-visible { outline: none; }
   align-items: center;
   justify-content: center;
 }
+
+/* Evita que el contenido quede tapado por el botón hamburguesa cuando el sidebar colapsa */
+body:has(#mobile-menu-btn:not(.hidden)) #main-content {
+  padding-left: 3.5rem;
+}
