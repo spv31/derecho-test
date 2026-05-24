@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NaN Quiz Generator</title>
+  <title>NaN Quiz</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,635 +27,89 @@
           fontFamily: {
             mono: ['"JetBrains Mono"', "monospace"],
             sans: ["Inter", "sans-serif"],
+            display: ['"Plus Jakarta Sans"', "sans-serif"],
           },
         },
       },
     };
   </script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { min-height: 100vh; background: #0e0c15; color: #f1f5f9; font-family: Inter, sans-serif; }
-    input, textarea, select { font-family: inherit; }
-    input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
-    .drag-over { border-color: #7c3aed !important; background: rgba(124, 58, 237, 0.08); }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner { animation: spin 0.8s linear infinite; }
-    input:focus, button:focus-visible { outline: none; ring: 2px solid #7c3aed; }
-  </style>
+  <link rel="stylesheet" href="./styles.css" />
 </head>
-<body class="min-h-screen bg-brand-bg text-brand-text font-sans antialiased">
-  <div id="app" class="max-w-4xl mx-auto px-4 py-6">
+<body class="min-h-screen bg-brand-bg text-brand-text font-sans antialiased leading-relaxed">
 
-    <!-- Spinner overlay for exam generation -->
-    <div id="loading-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
-      <div class="bg-brand-surface border border-brand-border rounded-xl p-8 flex flex-col items-center gap-4">
-        <svg class="spinner w-10 h-10 text-brand-accent" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-        </svg>
-        <p class="text-brand-muted font-mono text-sm">Generando examen...</p>
-      </div>
+  <!-- Loading overlay -->
+  <div id="loading-overlay" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center">
+    <div class="bg-brand-surface border border-brand-border rounded-xl p-8 flex flex-col items-center gap-4">
+      <svg class="spinner w-10 h-10 text-brand-accent" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+      </svg>
+      <p class="text-brand-muted text-sm">Generando examen...</p>
     </div>
+  </div>
 
-    <!-- Toast container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+  <!-- Toast container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
-    <!-- ======================== VIEW LOGIN ======================== -->
-    <div id="view-login" class="flex flex-col items-center justify-center min-h-[80vh] gap-8">
-      <div class="text-center">
-        <h1 class="font-mono text-3xl font-semibold tracking-tight">
-          <span class="text-brand-accent">NaN</span> Quiz Generator
-        </h1>
-        <p class="text-brand-muted font-mono text-sm mt-2">// genera exámenes con IA</p>
-      </div>
-      <div id="google-signin-button"></div>
-      <div id="login-error" class="hidden text-brand-error font-mono text-sm"></div>
+  <!-- Login view -->
+  <div id="view-login" class="flex flex-col items-center justify-center min-h-screen gap-8 px-4">
+    <div class="text-center">
+      <h1 class="font-mono text-3xl font-semibold tracking-tight">
+        <span class="text-brand-accent">NaN</span> Quiz Generator
+      </h1>
+      <p class="text-brand-muted text-sm mt-2">Genera exámenes a partir de tus apuntes</p>
     </div>
+    <div id="google-signin-button"></div>
+    <div id="login-error" class="hidden text-brand-error text-sm"></div>
+  </div>
 
-    <!-- ======================== VIEW DASHBOARD ======================== -->
-    <div id="view-dashboard" class="hidden">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="font-mono text-lg text-brand-muted">// asignaturas</h2>
-        <button id="logout-btn" class="text-brand-muted hover:text-brand-text font-mono text-xs transition-colors">Cerrar sesión</button>
-      </div>
-
-      <div class="flex gap-3 mb-6">
-        <input id="new-subject-input" type="text" placeholder="Nueva asignatura..." class="flex-1 bg-brand-surface border border-brand-border rounded-lg px-4 py-2.5 text-sm text-brand-text placeholder-brand-muted/50 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all" />
-        <button id="create-subject-btn" class="bg-brand-accent hover:bg-brand-accent-h text-white font-mono text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap">+ Crear</button>
-      </div>
-
-      <div id="subjects-list" class="grid gap-3 sm:grid-cols-2"></div>
-      <div id="dashboard-empty" class="hidden text-brand-muted font-mono text-sm text-center py-12">// ninguna asignatura todavía</div>
-    </div>
-
-    <!-- ======================== VIEW SUBJECT ======================== -->
-    <div id="view-subject" class="hidden">
-      <div class="flex items-center gap-4 mb-6">
-        <button id="back-to-dashboard" class="text-brand-muted hover:text-brand-text transition-colors" title="Volver">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+  <!-- App layout -->
+  <div id="app-layout" class="hidden flex flex-col h-screen">
+    <!-- Topbar -->
+    <header class="h-14 bg-brand-surface border-b border-brand-border flex items-center justify-between px-4 shrink-0 z-40">
+      <div class="flex items-center gap-3">
+        <button id="sidebar-toggle" class="text-brand-muted hover:text-brand-text transition-colors" title="Menú lateral">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
         </button>
-        <div>
-          <h2 id="subject-name" class="font-mono text-lg font-semibold"></h2>
-          <p class="font-mono text-xs text-brand-muted" id="subject-meta"></p>
-        </div>
+        <span class="font-mono text-sm font-semibold text-brand-accent">NaN Quiz</span>
       </div>
-
-      <!-- Documents section -->
-      <div class="mb-8">
-        <h3 class="font-mono text-sm text-brand-muted mb-3">// documentos</h3>
-
-        <div id="upload-zone" class="border-2 border-dashed border-brand-border rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-brand-accent/50 mb-4">
-          <svg class="w-8 h-8 mx-auto mb-2 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
-          <p class="text-brand-muted font-mono text-xs">Arrastra PDF o PPTX aquí o haz clic para seleccionar</p>
-          <input id="file-input" type="file" accept=".pdf,.pptx" multiple class="hidden" />
-        </div>
-
-        <div id="documents-list" class="space-y-2"></div>
-        <div id="documents-empty" class="hidden text-brand-muted font-mono text-xs text-center py-4">// ningún documento</div>
+      <div class="flex items-center gap-3">
+        <span id="user-email" class="text-xs text-brand-muted truncate max-w-[180px]"></span>
+        <button id="logout-btn" class="text-xs text-brand-muted hover:text-brand-text transition-colors whitespace-nowrap">Cerrar sesión</button>
       </div>
-
-      <!-- Exam generation -->
-      <div class="mb-8">
-        <h3 class="font-mono text-sm text-brand-muted mb-3">// generar examen</h3>
-        <div class="bg-brand-surface border border-brand-border rounded-lg p-4">
-          <p class="text-xs text-brand-muted mb-3 font-mono">Selecciona documentos y número de preguntas</p>
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="flex-1 min-w-[200px]">
-              <label class="text-xs text-brand-muted font-mono block mb-1">Documentos</label>
-              <div id="doc-selector" class="space-y-1 max-h-32 overflow-y-auto"></div>
-              <p id="doc-selector-empty" class="text-xs text-brand-muted/50 font-mono">// no hay documentos</p>
+    </header>
+    <!-- Body: sidebar + main -->
+    <div class="flex flex-1 overflow-hidden relative">
+      <!-- Sidebar -->
+      <aside id="sidebar" class="bg-brand-surface border-r border-brand-border flex flex-col shrink-0 overflow-hidden transition-all duration-200 z-30 max-md:fixed max-md:inset-y-0 max-md:left-0 max-md:-translate-x-full">
+        <!-- Scrollable subject list -->
+        <div id="sidebar-content" class="flex-1 overflow-y-auto p-3">
+          <div class="space-y-1">
+            <div class="flex items-center justify-between px-2 py-2">
+              <h2 class="font-display text-sm font-semibold text-brand-text">Tus asignaturas</h2>
             </div>
-            <div>
-              <label class="text-xs text-brand-muted font-mono block mb-1">Preguntas</label>
-              <input id="question-count" type="number" min="1" max="30" value="5" class="w-20 bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none" />
+            <div id="subjects-list" class="space-y-1">
             </div>
-            <button id="generate-exam-btn" class="bg-brand-accent hover:bg-brand-accent-h text-white font-mono text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap self-end">Generar examen</button>
+            <div id="sidebar-empty" class="hidden text-xs text-brand-muted text-center py-4 px-2">Aún no tienes asignaturas</div>
           </div>
         </div>
-      </div>
-
-      <!-- Previous exams -->
-      <div>
-        <h3 class="font-mono text-sm text-brand-muted mb-3">// exámenes anteriores</h3>
-        <div id="exams-list" class="space-y-2"></div>
-        <div id="exams-empty" class="hidden text-brand-muted font-mono text-xs text-center py-4">// ningún examen</div>
-      </div>
-    </div>
-
-    <!-- ======================== VIEW EXAM ======================== -->
-    <div id="view-exam" class="hidden">
-      <div class="flex items-center gap-4 mb-6">
-        <button id="back-to-subject" class="text-brand-muted hover:text-brand-text transition-colors" title="Volver">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <div>
-          <h2 id="exam-title" class="font-mono text-lg font-semibold"></h2>
-          <p class="font-mono text-xs text-brand-muted" id="exam-meta"></p>
+        <!-- Create subject form -->
+        <div class="p-3 border-t border-brand-border">
+          <div class="flex gap-2">
+            <input id="new-subject-input" type="text" placeholder="Nombre de la asignatura" class="flex-1 bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text placeholder-brand-muted/50 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all" />
+            <button id="create-subject-btn" class="bg-brand-accent hover:bg-brand-accent-h text-white text-sm px-3 py-2 rounded-lg transition-colors whitespace-nowrap shrink-0">Crear asignatura</button>
+          </div>
         </div>
-      </div>
-
-      <div id="questions-container" class="space-y-6 mb-6"></div>
-
-      <div id="exam-actions" class="flex gap-3 items-center">
-        <button id="submit-exam-btn" class="bg-brand-accent hover:bg-brand-accent-h text-white font-mono text-sm px-6 py-2.5 rounded-lg transition-colors">Enviar respuestas</button>
-      </div>
-
-      <div id="exam-results" class="hidden mt-6 bg-brand-surface border border-brand-border rounded-lg p-6">
-        <h3 class="font-mono text-lg text-brand-accent mb-2" id="results-score"></h3>
-        <p class="font-mono text-xs text-brand-muted mb-4" id="results-detail"></p>
-      </div>
+      </aside>
+      <!-- Backdrop for mobile sidebar -->
+      <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/50 z-20 md:hidden"></div>
+      <!-- Main content -->
+      <main id="main-content" class="flex-1 overflow-y-auto p-6">
+      </main>
     </div>
-
   </div>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script>
-    // =========================== STATE ===========================
-    const state = {
-      token: localStorage.getItem('session_token'),
-      currentSubjectId: null,
-      currentSubjectName: '',
-      currentExamId: null,
-      examQuestions: [],
-      userAnswers: [],
-    };
-
-    // =========================== UTILS ===========================
-    function $(sel) { return document.querySelector(sel); }
-    function $$(sel) { return document.querySelectorAll(sel); }
-
-    function showView(viewId) {
-      ['view-login', 'view-dashboard', 'view-subject', 'view-exam'].forEach(id => {
-        document.getElementById(id).classList.toggle('hidden', id !== viewId);
-      });
-    }
-
-    function showToast(message, type) {
-      const color = type === 'error' ? 'border-red-500 bg-red-900/30 text-brand-error'
-        : type === 'success' ? 'border-emerald-500 bg-emerald-900/30 text-emerald-400'
-        : 'border-brand-border bg-brand-surface text-brand-text';
-      const container = $('#toast-container');
-      const toast = document.createElement('div');
-      toast.className = `border ${color} rounded-lg px-4 py-2.5 font-mono text-sm animate-[fadeIn_0.2s_ease]`;
-      toast.textContent = message;
-      container.appendChild(toast);
-      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 4000);
-    }
-
-    function showLoading(show) {
-      $('#loading-overlay').classList.toggle('hidden', !show);
-    }
-
-    // =========================== API ===========================
-    async function apiFetch(url, options = {}) {
-      const headers = options.headers || {};
-      if (state.token && !url.includes('/api/config') && !url.includes('/api/auth/')) {
-        headers['Authorization'] = `Bearer ${state.token}`;
-      }
-      if (options.body && !(options.body instanceof FormData)) {
-        headers['Content-Type'] = 'application/json';
-      }
-      const res = await fetch(url, { ...options, headers });
-      if (res.status === 401 && state.token) {
-        localStorage.removeItem('session_token');
-        state.token = null;
-        showView('view-login');
-        showToast('Sesión expirada', 'error');
-        return null;
-      }
-      if (res.status === 403) {
-        showToast('Cuenta no autorizada', 'error');
-        return null;
-      }
-      if (res.status === 413) {
-        showToast('Fichero demasiado grande (máx 25 MB)', 'error');
-        return null;
-      }
-      if (res.status === 502) {
-        showToast('Error del servicio de IA, inténtalo de nuevo', 'error');
-        return null;
-      }
-      if (!res.ok) {
-        const text = await res.text().catch(() => 'Error desconocido');
-        showToast(text || `Error ${res.status}`, 'error');
-        return null;
-      }
-      if (res.status === 204) return {};
-      const text = await res.text();
-      return text ? JSON.parse(text) : {};
-    }
-
-    // =========================== LOGIN ===========================
-    async function initLogin() {
-      const config = await apiFetch('/api/config');
-      if (!config || !config.google_client_id) {
-        $('#login-error').textContent = 'Error al cargar configuración';
-        $('#login-error').classList.remove('hidden');
-        return;
-      }
-      if (typeof google === 'undefined') {
-        setTimeout(() => initLogin(), 500);
-        return;
-      }
-      google.accounts.id.initialize({
-        client_id: config.google_client_id,
-        callback: handleCredentialResponse,
-      });
-      google.accounts.id.renderButton(
-        document.getElementById('google-signin-button'),
-        { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with', locale: 'es' }
-      );
-    }
-
-    async function handleCredentialResponse(response) {
-      const result = await apiFetch('/api/auth/google', {
-        method: 'POST',
-        body: JSON.stringify({ id_token: response.credential }),
-      });
-      if (!result) return;
-      state.token = result.token;
-      localStorage.setItem('session_token', result.token);
-      await loadDashboard();
-    }
-
-    // =========================== DASHBOARD ===========================
-    async function loadDashboard() {
-      showView('view-dashboard');
-      const subjects = await apiFetch('/api/subjects');
-      if (!subjects) return;
-      state.subjects = subjects;
-      const container = $('#subjects-list');
-      const empty = $('#dashboard-empty');
-      container.innerHTML = '';
-      if (subjects.length === 0) {
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-      subjects.forEach(sub => {
-        const card = document.createElement('div');
-        card.className = 'bg-brand-surface border border-brand-border rounded-lg p-4 flex items-center justify-between hover:border-brand-accent/50 transition-colors cursor-pointer group';
-        card.innerHTML = `
-          <div class="flex-1 min-w-0">
-            <h3 class="font-mono text-sm font-medium truncate">${escapeHtml(sub.name)}</h3>
-            <p class="font-mono text-xs text-brand-muted mt-1">${sub.created_at ? new Date(sub.created_at).toLocaleDateString() : ''}</p>
-          </div>
-          <button class="delete-subject-btn p-1.5 text-brand-muted hover:text-brand-error transition-colors opacity-0 group-hover:opacity-100" data-id="${sub.id}" title="Eliminar">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-          </button>
-        `;
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('.delete-subject-btn')) return;
-          navigateToSubject(sub.id, sub.name);
-        });
-        card.querySelector('.delete-subject-btn').addEventListener('click', async (e) => {
-          e.stopPropagation();
-          await apiFetch(`/api/subjects/${sub.id}`, { method: 'DELETE' });
-          await loadDashboard();
-        });
-        container.appendChild(card);
-      });
-    }
-
-    // =========================== SUBJECT ===========================
-    async function navigateToSubject(subjectId, subjectName) {
-      state.currentSubjectId = subjectId;
-      state.currentSubjectName = subjectName;
-      showView('view-subject');
-      $('#subject-name').textContent = subjectName;
-      await loadSubjectData();
-    }
-
-    async function loadSubjectData() {
-      const id = state.currentSubjectId;
-      const [documents, exams] = await Promise.all([
-        apiFetch(`/api/subjects/${id}/documents`),
-        apiFetch(`/api/subjects/${id}/exams`),
-      ]);
-      renderDocuments(documents || []);
-      renderDocSelector(documents || []);
-      renderExams(exams || []);
-    }
-
-    function renderDocuments(docs) {
-      const container = $('#documents-list');
-      const empty = $('#documents-empty');
-      container.innerHTML = '';
-      if (docs.length === 0) {
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-      docs.forEach(doc => {
-        const el = document.createElement('div');
-        const statusColor = doc.status === 'ready' ? 'text-emerald-400' : 'text-amber-400';
-        el.className = 'bg-brand-surface border border-brand-border rounded-lg px-3 py-2 flex items-center justify-between';
-        el.innerHTML = `
-          <div class="flex items-center gap-2 min-w-0">
-            <svg class="w-4 h-4 text-brand-muted shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
-            <span class="font-mono text-xs truncate">${escapeHtml(doc.filename)}</span>
-            <span class="font-mono text-xs ${statusColor}">// ${doc.status}</span>
-          </div>
-          <button class="delete-doc-btn text-brand-muted hover:text-brand-error transition-colors ml-2" data-id="${doc.id}" title="Eliminar">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-          </button>
-        `;
-        el.querySelector('.delete-doc-btn').addEventListener('click', async (e) => {
-          e.stopPropagation();
-          await apiFetch(`/api/documents/${doc.id}`, { method: 'DELETE' });
-          await loadSubjectData();
-        });
-        container.appendChild(el);
-      });
-    }
-
-    function renderDocSelector(docs) {
-      const container = $('#doc-selector');
-      const empty = $('#doc-selector-empty');
-      container.innerHTML = '';
-      const ready = docs.filter(d => d.status === 'ready');
-      if (ready.length === 0) {
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-      ready.forEach(doc => {
-        const label = document.createElement('label');
-        label.className = 'flex items-center gap-2 cursor-pointer group';
-        label.innerHTML = `
-          <input type="checkbox" class="doc-checkbox rounded border-brand-border bg-brand-bg text-brand-accent focus:ring-brand-accent" value="${doc.id}" />
-          <span class="font-mono text-xs text-brand-text truncate">${escapeHtml(doc.filename)}</span>
-        `;
-        container.appendChild(label);
-      });
-    }
-
-    function renderExams(exams) {
-      const container = $('#exams-list');
-      const empty = $('#exams-empty');
-      container.innerHTML = '';
-      if (exams.length === 0) {
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-      exams.forEach(exam => {
-        const el = document.createElement('div');
-        el.className = 'bg-brand-surface border border-brand-border rounded-lg px-4 py-3 flex items-center justify-between hover:border-brand-accent/50 transition-colors cursor-pointer';
-        el.innerHTML = `
-          <div>
-            <h4 class="font-mono text-sm">${escapeHtml(exam.title)}</h4>
-            <p class="font-mono text-xs text-brand-muted mt-0.5">${exam.question_count} preguntas · ${new Date(exam.created_at).toLocaleDateString()}</p>
-          </div>
-          <svg class="w-4 h-4 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-        `;
-        el.addEventListener('click', () => navigateToExam(exam.id));
-        container.appendChild(el);
-      });
-    }
-
-    // =========================== EXAM ===========================
-    async function navigateToExam(examId) {
-      state.currentExamId = examId;
-      showView('view-exam');
-      showLoading(true);
-      const exam = await apiFetch(`/api/exams/${examId}`);
-      showLoading(false);
-      if (!exam) {
-        navigateToSubject(state.currentSubjectId, state.currentSubjectName);
-        return;
-      }
-      state.examQuestions = exam.questions || [];
-      state.userAnswers = state.examQuestions.map(() => null);
-      renderExam(exam);
-    }
-
-    function renderExam(exam) {
-      $('#exam-title').textContent = exam.title || 'Examen';
-      $('#exam-meta').textContent = `${exam.questions.length} preguntas · ${new Date(exam.created_at).toLocaleDateString()}`;
-      $('#exam-results').classList.add('hidden');
-      $('#submit-exam-btn').classList.remove('hidden');
-      $('#submit-exam-btn').disabled = false;
-      $('#submit-exam-btn').textContent = 'Enviar respuestas';
-
-      const container = $('#questions-container');
-      container.innerHTML = '';
-      exam.questions.forEach((q, i) => {
-        const div = document.createElement('div');
-        div.className = 'bg-brand-surface border border-brand-border rounded-lg p-4';
-        div.id = `question-${i}`;
-        let optionsHtml = '';
-        (q.options || []).forEach((opt, j) => {
-          optionsHtml += `
-            <label class="flex items-center gap-3 p-2 rounded-md hover:bg-brand-bg/50 cursor-pointer transition-colors">
-              <input type="radio" name="q-${i}" value="${j}" class="rounded-full border-brand-border bg-brand-bg text-brand-accent focus:ring-brand-accent" data-q="${i}" />
-              <span class="font-mono text-sm">${escapeHtml(opt)}</span>
-            </label>
-          `;
-        });
-        div.innerHTML = `
-          <p class="font-mono text-sm font-medium mb-3">${i + 1}. ${escapeHtml(q.question)}</p>
-          <div class="space-y-1">${optionsHtml}</div>
-          <div id="q-${i}-result" class="hidden mt-3"></div>
-        `;
-        container.appendChild(div);
-      });
-
-      container.querySelectorAll('input[type="radio"]').forEach(input => {
-        input.addEventListener('change', () => {
-          const qi = parseInt(input.dataset.q);
-          state.userAnswers[qi] = parseInt(input.value);
-        });
-      });
-    }
-
-    function submitExam() {
-      const questions = state.examQuestions;
-      let correct = 0;
-      questions.forEach((q, i) => {
-        const resultDiv = document.querySelector(`#q-${i}-result`);
-        const selected = state.userAnswers[i];
-        const isCorrect = selected === q.correct_index;
-        if (isCorrect) correct++;
-
-        resultDiv.classList.remove('hidden');
-        const options = document.querySelectorAll(`#question-${i} input[type="radio"]`);
-        options.forEach((opt, j) => {
-          const label = opt.closest('label');
-          if (j === q.correct_index) {
-            label.classList.add('text-emerald-400', 'bg-emerald-900/20');
-            label.classList.remove('hover:bg-brand-bg/50');
-          } else if (j === selected && !isCorrect) {
-            label.classList.add('text-brand-error', 'bg-red-900/20');
-            label.classList.remove('hover:bg-brand-bg/50');
-          } else {
-            label.classList.add('opacity-50');
-          }
-          opt.disabled = true;
-        });
-
-        resultDiv.innerHTML = `
-          <div class="text-xs font-mono ${isCorrect ? 'text-emerald-400' : 'text-brand-error'} mb-1">
-            ${isCorrect ? '✓ Correcto' : `✗ Incorrecto (correcta: ${escapeHtml(q.options[q.correct_index])})`}
-          </div>
-          <div class="text-xs text-brand-muted font-mono">${escapeHtml(q.explanation || '')}</div>
-        `;
-      });
-
-      const total = questions.length;
-      $('#results-score').textContent = `${correct} / ${total}`;
-      $('#results-detail').textContent = `// ${Math.round((correct / total) * 100)}% correcto`;
-      $('#exam-results').classList.remove('hidden');
-      $('#submit-exam-btn').classList.add('hidden');
-    }
-
-    // =========================== HELPERS ===========================
-    function escapeHtml(str) {
-      const d = document.createElement('div');
-      d.textContent = str;
-      return d.innerHTML;
-    }
-
-    // =========================== EVENTS ===========================
-
-    // Logout
-    $('#logout-btn').addEventListener('click', () => {
-      localStorage.removeItem('session_token');
-      state.token = null;
-      showView('view-login');
-    });
-
-    // Create subject
-    $('#create-subject-btn').addEventListener('click', async () => {
-      const input = $('#new-subject-input');
-      const name = input.value.trim();
-      if (!name) return;
-      const result = await apiFetch('/api/subjects', {
-        method: 'POST',
-        body: JSON.stringify({ name }),
-      });
-      if (result) {
-        input.value = '';
-        await loadDashboard();
-      }
-    });
-    $('#new-subject-input').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') $('#create-subject-btn').click();
-    });
-
-    // Back to dashboard
-    $('#back-to-dashboard').addEventListener('click', () => loadDashboard());
-
-    // Back to subject
-    $('#back-to-subject').addEventListener('click', () => {
-      navigateToSubject(state.currentSubjectId, state.currentSubjectName);
-    });
-
-    // File upload zone
-    const uploadZone = $('#upload-zone');
-    const fileInput = $('#file-input');
-
-    uploadZone.addEventListener('click', () => fileInput.click());
-
-    uploadZone.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      uploadZone.classList.add('drag-over');
-    });
-    uploadZone.addEventListener('dragleave', () => {
-      uploadZone.classList.remove('drag-over');
-    });
-    uploadZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      uploadZone.classList.remove('drag-over');
-      if (e.dataTransfer.files.length) handleFileUpload(Array.from(e.dataTransfer.files));
-    });
-    fileInput.addEventListener('change', () => {
-      if (fileInput.files.length) handleFileUpload(Array.from(fileInput.files));
-    });
-
-    async function handleFileUpload(files) {
-      const maxSize = 25 * 1024 * 1024;
-      const validFiles = [];
-      const errors = [];
-      for (const file of files) {
-        if (file.size > maxSize) {
-          errors.push(`${file.name}: demasiado grande`);
-          continue;
-        }
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (!['pdf', 'pptx'].includes(ext)) {
-          errors.push(`${file.name}: formato no soportado`);
-          continue;
-        }
-        validFiles.push(file);
-      }
-      if (validFiles.length === 0) {
-        showToast(errors.join(', '), 'error');
-        return;
-      }
-      let successCount = 0;
-      let failCount = 0;
-      for (let i = 0; i < validFiles.length; i++) {
-        showToast(`Subiendo ${i + 1}/${validFiles.length}...`, 'info');
-        const fd = new FormData();
-        fd.append('files', validFiles[i]);
-        const result = await apiFetch(`/api/subjects/${state.currentSubjectId}/documents`, {
-          method: 'POST',
-          body: fd,
-        });
-        if (result) {
-          successCount++;
-        } else {
-          failCount++;
-        }
-      }
-      if (failCount === 0) {
-        showToast(`${successCount} ficheros subidos correctamente`, 'success');
-      } else {
-        showToast(`${successCount} de ${validFiles.length} subidos (${failCount} error)`, 'error');
-      }
-      await loadSubjectData();
-    }
-
-    // Generate exam
-    $('#generate-exam-btn').addEventListener('click', async () => {
-      const checkboxes = $$('.doc-checkbox:checked');
-      const docIds = Array.from(checkboxes).map(cb => cb.value);
-      if (docIds.length === 0) {
-        showToast('Selecciona al menos un documento', 'error');
-        return;
-      }
-      const qCount = parseInt($('#question-count').value) || 5;
-      if (qCount < 1 || qCount > 30) {
-        showToast('Número de preguntas entre 1 y 30', 'error');
-        return;
-      }
-      showLoading(true);
-      const result = await apiFetch(`/api/subjects/${state.currentSubjectId}/exams/generate`, {
-        method: 'POST',
-        body: JSON.stringify({ document_ids: docIds, question_count: qCount }),
-      });
-      showLoading(false);
-      if (result) {
-        showToast('Examen generado correctamente', 'success');
-        await loadSubjectData();
-        navigateToExam(result.id);
-      }
-    });
-
-    // Submit exam
-    $('#submit-exam-btn').addEventListener('click', submitExam);
-
-    // =========================== INIT ===========================
-    async function init() {
-      if (state.token) {
-        await loadDashboard();
-      } else {
-        showView('view-login');
-        initLogin();
-      }
-    }
-    init();
-  </script>
+  <script type="module" src="./js/main.js"></script>
 </body>
 </html>
