@@ -104,14 +104,7 @@ button:focus-visible {
   animation: fadeIn 0.15s ease;
 }
 
-/* Reopen / hamburger button — force block when visible */
-#mobile-menu-btn:not(.hidden) {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-}
-
 /* Evita que el contenido quede tapado por el botón hamburguesa cuando el sidebar colapsa */
-body:has(#mobile-menu-btn:not(.hidden)) #main-content {
+.sidebar-reopen-btn.visible + main {
   padding-left: 3.5rem;
 }
