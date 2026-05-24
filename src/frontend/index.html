@@ -49,7 +49,7 @@
   </div>
 
   <!-- Toast container -->
-  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+  <div id="toast-container" class="fixed top-16 right-4 z-50 flex flex-col gap-2"></div>
 
   <!-- Login view -->
   <div id="view-login" class="flex flex-col items-center justify-center min-h-screen gap-8 px-4">
@@ -73,9 +73,10 @@
         </button>
         <span class="font-mono text-sm font-semibold text-brand-accent">NaN Quiz</span>
       </div>
-      <div class="flex items-center gap-3">
-        <span id="user-email" class="text-xs text-brand-muted truncate max-w-[180px]"></span>
-        <button id="logout-btn" class="text-xs text-brand-muted hover:text-brand-text transition-colors whitespace-nowrap">Cerrar sesión</button>
+      <div class="flex items-center gap-2">
+        <span id="user-email" class="hidden sm:block text-xs text-brand-muted truncate max-w-[160px]"></span>
+        <div class="hidden sm:block w-px h-4 bg-brand-border"></div>
+        <button id="logout-btn" class="text-xs text-brand-muted hover:text-brand-error transition-colors whitespace-nowrap px-2 py-1 rounded hover:bg-brand-error/10">Cerrar sesión</button>
       </div>
     </header>
     <!-- Body: sidebar + main -->

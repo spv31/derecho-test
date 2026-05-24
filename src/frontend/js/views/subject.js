@@ -41,19 +41,22 @@ function getSubjectHtml(subjectName) {
 
       <div class="mb-8">
         <h3 class="font-display text-sm font-semibold text-brand-muted mb-3">Generar examen</h3>
-        <div class="bg-brand-surface border border-brand-border rounded-lg p-4">
-          <p class="text-sm text-brand-muted mb-3">Elige los documentos y cuántas preguntas quieres</p>
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="flex-1 min-w-[200px]">
-              <label class="text-xs text-brand-muted block mb-1">Documentos</label>
-              <div id="doc-selector" class="space-y-1 max-h-32 overflow-y-auto"></div>
-              <p id="doc-selector-empty" class="text-xs text-brand-muted/50">Sube un PDF o PPTX para poder generar exámenes</p>
-            </div>
+        <div class="bg-brand-surface border border-brand-border rounded-lg p-5">
+          <p class="text-sm text-brand-muted mb-4">Elige los documentos y cuántas preguntas quieres</p>
+          <div class="mb-4">
+            <label class="text-xs text-brand-muted block mb-2">Documentos a incluir</label>
+            <div id="doc-selector" class="space-y-2 max-h-48 overflow-y-auto pr-1"></div>
+            <p id="doc-selector-empty" class="text-sm text-brand-muted/50 py-3">Sube un PDF o PPTX para poder generar exámenes</p>
+          </div>
+          <div class="flex items-end gap-3 pt-3 border-t border-brand-border/50">
             <div>
-              <label class="text-xs text-brand-muted block mb-1">Preguntas</label>
-              <input id="question-count" type="number" min="1" max="30" value="5" class="w-20 bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none" />
+              <label class="text-xs text-brand-muted block mb-1">Nº de preguntas</label>
+              <input id="question-count" type="number" min="1" max="30" value="5" class="w-24 bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none" />
             </div>
-            <button id="generate-exam-btn" class="bg-brand-accent hover:bg-brand-accent-h text-white text-sm px-5 py-2.5 rounded-lg transition-colors whitespace-nowrap self-end">Generar examen</button>
+            <button id="generate-exam-btn" class="bg-brand-accent hover:bg-brand-accent-h text-white text-sm px-6 py-2.5 rounded-lg transition-colors whitespace-nowrap flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
+              Generar examen
+            </button>
           </div>
         </div>
       </div>
@@ -131,9 +134,10 @@ function renderDocSelector(docs) {
   empty.classList.add('hidden');
   ready.forEach(doc => {
     const label = document.createElement('label');
-    label.className = 'flex items-center gap-2 cursor-pointer group';
+    label.className = 'flex items-center gap-3 px-3 py-2.5 rounded-lg border border-brand-border bg-brand-bg hover:border-brand-accent/50 cursor-pointer transition-all group has-[:checked]:border-brand-accent has-[:checked]:bg-brand-accent/10';
     label.innerHTML = `
-      <input type="checkbox" class="doc-checkbox rounded border-brand-border bg-brand-bg text-brand-accent focus:ring-brand-accent" value="${doc.id}" />
+      <input type="checkbox" class="doc-checkbox rounded border-brand-border bg-brand-bg text-brand-accent focus:ring-brand-accent shrink-0" value="${doc.id}" />
+      <svg class="w-4 h-4 text-brand-muted shrink-0 group-has-[:checked]:text-brand-accent transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
       <span class="text-sm text-brand-text truncate">${escapeHtml(doc.filename)}</span>
     `;
     container.appendChild(label);

@@ -14,13 +14,13 @@ export function escapeHtml(str) {
 
 export function showToast(message, type = 'info') {
   const color = type === 'error'
-    ? 'border-red-500 bg-red-900/30 text-brand-error'
+    ? 'border-red-500/80 bg-red-950 text-red-200'
     : type === 'success'
-      ? 'border-emerald-500 bg-emerald-900/30 text-emerald-400'
-      : 'border-brand-border bg-brand-surface text-brand-text';
+      ? 'border-emerald-500/80 bg-emerald-950 text-emerald-200'
+      : 'border-brand-accent/40 bg-brand-surface text-brand-text';
   const container = document.getElementById('toast-container');
   const toast = document.createElement('div');
-  toast.className = `border ${color} rounded-lg px-4 py-2.5 text-sm animate-[fadeIn_0.2s_ease]`;
+  toast.className = `border ${color} rounded-lg px-4 py-3 text-sm shadow-lg backdrop-blur-sm min-w-[240px] max-w-[380px] animate-[fadeIn_0.2s_ease]`;
   toast.textContent = message;
   container.appendChild(toast);
   setTimeout(() => {
