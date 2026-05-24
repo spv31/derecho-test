@@ -49,7 +49,7 @@
   </div>
 
   <!-- Toast container -->
-  <div id="toast-container" class="fixed top-16 right-4 z-50 flex flex-col gap-2"></div>
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
   <!-- Login view -->
   <div id="view-login" class="flex flex-col items-center justify-center min-h-screen gap-8 px-4">
@@ -64,53 +64,71 @@
   </div>
 
   <!-- App layout -->
-  <div id="app-layout" class="hidden flex flex-col h-screen">
-    <!-- Topbar -->
-    <header class="h-14 bg-brand-surface border-b border-brand-border flex items-center justify-between px-4 shrink-0 z-40">
-      <div class="flex items-center gap-3">
-        <button id="sidebar-toggle" class="text-brand-muted hover:text-brand-text transition-colors" title="Menú lateral">
+  <div id="app-layout" class="hidden flex h-screen">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="bg-brand-surface border-r border-brand-border flex flex-col shrink-0 overflow-hidden transition-all duration-200 z-30 max-md:fixed max-md:top-0 max-md:bottom-0 max-md:left-0 max-md:-translate-x-full">
+
+      <!-- Sidebar header: logo + toggle -->
+      <div class="h-14 flex items-center justify-between px-4 border-b border-brand-border shrink-0">
+        <span class="font-mono text-base font-bold tracking-tight">
+          <span class="text-brand-accent">NaN</span><span class="text-brand-text"> Quiz</span>
+        </span>
+        <button id="sidebar-toggle" class="text-brand-muted hover:text-brand-text transition-colors p-1 rounded hover:bg-brand-bg/50" title="Colapsar menú">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
         </button>
-        <span class="font-mono text-sm font-semibold text-brand-accent">NaN Quiz</span>
       </div>
-      <div class="flex items-center gap-2">
-        <span id="user-email" class="hidden sm:block text-xs text-brand-muted truncate max-w-[160px]"></span>
-        <div class="hidden sm:block w-px h-4 bg-brand-border"></div>
-        <button id="logout-btn" class="text-xs text-brand-muted hover:text-brand-error transition-colors whitespace-nowrap px-2 py-1 rounded hover:bg-brand-error/10">Cerrar sesión</button>
-      </div>
-    </header>
-    <!-- Body: sidebar + main -->
-    <div class="flex flex-1 overflow-hidden relative">
-      <!-- Sidebar -->
-      <aside id="sidebar" class="bg-brand-surface border-r border-brand-border flex flex-col shrink-0 overflow-hidden transition-all duration-200 z-30 max-md:top-14 max-md:bottom-0 max-md:left-0 max-md:-translate-x-full">
-        <!-- Scrollable subject list -->
-        <div id="sidebar-content" class="flex-1 overflow-y-auto p-3">
-          <div class="space-y-1">
-            <div class="flex items-center justify-between px-2 py-2">
-              <h2 class="font-display text-sm font-semibold text-brand-text">Tus asignaturas</h2>
-            </div>
-            <div id="subjects-list" class="space-y-1">
-            </div>
-            <div id="sidebar-empty" class="hidden text-xs text-brand-muted text-center py-4 px-2">Aún no tienes asignaturas</div>
-          </div>
+
+      <!-- Sidebar body: subjects -->
+      <div class="flex-1 overflow-y-auto p-3">
+        <div class="flex items-center justify-between px-2 py-2 mb-1">
+          <h2 class="font-display text-xs font-semibold text-brand-muted uppercase tracking-wider">Asignaturas</h2>
+          <button id="add-subject-btn" class="text-brand-muted hover:text-brand-accent transition-colors p-0.5 rounded hover:bg-brand-accent/10" title="Nueva asignatura">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          </button>
         </div>
-        <!-- Create subject form -->
-        <div class="p-3 border-t border-brand-border">
-          <div class="flex flex-col gap-2">
-            <input id="new-subject-input" type="text" placeholder="Nueva asignatura..." class="w-full bg-brand-bg border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text placeholder-brand-muted/50 focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all" />
-            <button id="create-subject-btn" class="w-full bg-brand-accent hover:bg-brand-accent-h text-white text-sm px-3 py-2 rounded-lg transition-colors flex items-center justify-center gap-1.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-              Crear
+        <!-- Inline create input (hidden by default) -->
+        <div id="inline-create" class="hidden px-1 mb-2">
+          <input id="inline-subject-input" type="text" placeholder="Nombre..." class="w-full bg-brand-bg border border-brand-accent rounded-lg px-3 py-2 text-sm text-brand-text placeholder-brand-muted/50 focus:ring-2 focus:ring-brand-accent outline-none" />
+        </div>
+        <div id="subjects-list" class="space-y-0.5"></div>
+        <div id="sidebar-empty" class="hidden text-xs text-brand-muted text-center py-6 px-2">Pulsa + para crear tu primera asignatura</div>
+      </div>
+
+      <!-- Sidebar footer: user + settings -->
+      <div class="border-t border-brand-border px-3 py-3 shrink-0">
+        <div class="flex items-center gap-2">
+          <!-- User avatar circle -->
+          <div class="w-8 h-8 rounded-full bg-brand-accent/20 flex items-center justify-center shrink-0">
+            <span id="user-initial" class="text-xs font-semibold text-brand-accent"></span>
+          </div>
+          <span id="user-email" class="text-xs text-brand-muted truncate flex-1"></span>
+          <!-- Settings button -->
+          <div class="relative">
+            <button id="settings-btn" class="text-brand-muted hover:text-brand-text transition-colors p-1.5 rounded hover:bg-brand-bg/50" title="Ajustes">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
             </button>
+            <!-- Dropdown menu (hidden by default) -->
+            <div id="settings-menu" class="hidden absolute bottom-full right-0 mb-2 w-44 bg-brand-surface border border-brand-border rounded-lg shadow-xl py-1 z-50">
+              <button id="logout-btn" class="w-full text-left px-3 py-2 text-sm text-brand-muted hover:text-brand-text hover:bg-brand-bg/50 transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg>
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         </div>
-      </aside>
-      <!-- Backdrop for mobile sidebar -->
-      <div id="sidebar-backdrop" class="hidden fixed top-14 bottom-0 left-0 right-0 bg-black/50 z-20 md:hidden"></div>
-      <!-- Main content -->
-      <main id="main-content" class="flex-1 overflow-y-auto p-6">
-      </main>
-    </div>
+      </div>
+    </aside>
+
+    <!-- Backdrop for mobile sidebar -->
+    <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/50 z-20 md:hidden"></div>
+
+    <!-- Mobile open sidebar button (visible when sidebar hidden on mobile) -->
+    <button id="mobile-menu-btn" class="md:hidden fixed top-3 left-3 z-40 bg-brand-surface border border-brand-border rounded-lg p-2 text-brand-muted hover:text-brand-text transition-colors shadow-lg">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+    </button>
+
+    <!-- Main content -->
+    <main id="main-content" class="flex-1 overflow-y-auto p-6"></main>
   </div>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>

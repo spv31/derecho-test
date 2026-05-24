@@ -3,15 +3,13 @@ import { $, showToast } from './utils.js';
 import { getSubjects, createSubject, deleteSubject } from './api.js';
 import { logout } from './auth.js';
 import { renderLogin } from './views/login.js';
-import { renderAppLayout, setUserEmail, showEmptyState } from './views/app.js';
+import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js';
 import { renderSubjectsList } from './views/sidebar.js';
 import { showSubject } from './views/subject.js';
 import { showExam } from './views/exam.js';
 
 function init() {
-  if (state.token && state.userEmail) {
-    showApp();
-  } else if (state.token) {
+  if (state.token) {
     showApp();
   } else {
     renderLogin();
@@ -20,7 +18,7 @@ function init() {
 
 async function showApp() {
   renderAppLayout();
-  setUserEmail(state.userEmail);
+  setUserInfo(state.userEmail);
   const subjects = await getSubjects();
   if (subjects === null) return;
   state.subjects = subjects || [];
@@ -28,7 +26,7 @@ async function showApp() {
   showEmptyState();
   wireSidebarEvents();
   wireNavigationEvents();
-  wireTopbarEvents();
+  wireSettingsEvents();
 }
 
 function wireSidebarEvents() {
@@ -60,20 +58,44 @@ function wireSidebarEvents() {
     }
   });
 
-  $('#create-subject-btn').addEventListener('click', async () => {
-    const input = $('#new-subject-input');
-    const name = input.value.trim();
-    if (!name) return;
-    const result = await createSubject(name);
-    if (result) {
-      input.value = '';
-      await refreshSidebar();
-      await navigateToSubject(result.id, result.name);
+  // Inline create: show input on + button click
+  const addBtn = $('#add-subject-btn');
+  const inlineCreate = $('#inline-create');
+  const inlineInput = $('#inline-subject-input');
+
+  addBtn.addEventListener('click', () => {
+    inlineCreate.classList.remove('hidden');
+    inlineInput.value = '';
+    inlineInput.focus();
+  });
+
+  inlineInput.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') {
+      const name = inlineInput.value.trim();
+      if (!name) {
+        inlineCreate.classList.add('hidden');
+        return;
+      }
+      const result = await createSubject(name);
+      if (result) {
+        inlineCreate.classList.add('hidden');
+        inlineInput.value = '';
+        await refreshSidebar();
+        await navigateToSubject(result.id, result.name);
+      }
+    } else if (e.key === 'Escape') {
+      inlineCreate.classList.add('hidden');
+      inlineInput.value = '';
     }
   });
 
-  $('#new-subject-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') $('#create-subject-btn').click();
+  inlineInput.addEventListener('blur', () => {
+    // Small delay so a click on something else processes first
+    setTimeout(() => {
+      if (inlineInput.value.trim() === '') {
+        inlineCreate.classList.add('hidden');
+      }
+    }, 150);
   });
 }
 
@@ -115,7 +137,7 @@ function wireNavigationEvents() {
   });
 }
 
-function wireTopbarEvents() {
+function wireSettingsEvents() {
   $('#logout-btn').addEventListener('click', () => {
     logout();
   });

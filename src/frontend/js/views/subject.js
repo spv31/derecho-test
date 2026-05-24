@@ -16,14 +16,8 @@ export async function showSubject(subjectId, subjectName) {
 function getSubjectHtml(subjectName) {
   return `
     <div class="max-w-3xl">
-      <div class="flex items-center gap-3 mb-6">
-        <button data-nav="back-to-subjects" class="text-brand-muted hover:text-brand-text transition-colors" title="Volver">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <div>
-          <h2 class="font-display text-lg font-semibold text-brand-text">${escapeHtml(subjectName)}</h2>
-          <p class="text-xs text-brand-muted" id="subject-meta"></p>
-        </div>
+      <div class="mb-6">
+        <h2 class="font-display text-xl font-semibold text-brand-text">${escapeHtml(subjectName)}</h2>
       </div>
 
       <div class="mb-8">
