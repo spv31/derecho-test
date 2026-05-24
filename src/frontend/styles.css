@@ -20,31 +20,75 @@
   --brand-error: 239 68 68;
 }
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-input, textarea, select { font-family: inherit; }
-input[type="number"]::-webkit-inner-spin-button { opacity: 1; }
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+input[type="number"]::-webkit-inner-spin-button {
+  opacity: 1;
+}
 
-.drag-over { border-color: rgb(var(--brand-accent)) !important; background: rgb(var(--brand-accent) / 0.08); }
+.drag-over {
+  border-color: rgb(var(--brand-accent)) !important;
+  background: rgb(var(--brand-accent) / 0.08);
+}
 
-@keyframes spin { to { transform: rotate(360deg); } }
-.spinner { animation: spin 0.8s linear infinite; }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
 
-input:focus, button:focus-visible { outline: none; }
+input:focus,
+button:focus-visible {
+  outline: none;
+}
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Sidebar dimensions */
-#sidebar { width: 260px; }
-#sidebar.desktop-collapsed { width: 0 !important; min-width: 0; padding: 0; overflow: hidden; border-right: none; }
-#sidebar.mobile-open { transform: translateX(0) !important; }
+#sidebar {
+  width: 260px;
+}
+#sidebar.desktop-collapsed {
+  width: 0 !important;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  border-right: none;
+}
+#sidebar.mobile-open {
+  transform: translateX(0) !important;
+}
 
 /* Reopen button: hidden by default, shown via JS class */
-.sidebar-reopen-btn { display: none !important; }
-.sidebar-reopen-btn.visible { display: flex !important; align-items: center; justify-content: center; }
+.sidebar-reopen-btn {
+  display: none !important;
+}
+.sidebar-reopen-btn.visible {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
 
 /* Doc selector: checked state */
 #doc-selector label:has(input:checked) {
@@ -58,4 +102,16 @@ input:focus, button:focus-visible { outline: none; }
 /* Settings dropdown animation */
 #settings-menu:not(.hidden) {
   animation: fadeIn 0.15s ease;
+}
+
+/* Reopen / hamburger button — force block when visible */
+#mobile-menu-btn:not(.hidden) {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Evita que el contenido quede tapado por el botón hamburguesa cuando el sidebar colapsa */
+body:has(#mobile-menu-btn:not(.hidden)) #main-content {
+  padding-left: 3.5rem;
 }
