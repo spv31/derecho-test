@@ -58,7 +58,10 @@ function wireSidebarEvents() {
 }
 
 function wireNavigationEvents() {
-  document.getElementById('main-content').addEventListener('click', (e) => {
+  const mainContent = document.getElementById('main-content');
+  if (!mainContent) return;
+
+  mainContent.addEventListener('click', (e) => {
     const navEl = e.target.closest('[data-nav]');
     if (!navEl) return;
     const action = navEl.dataset.nav;

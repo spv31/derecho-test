@@ -166,6 +166,8 @@ function wireSubjectEvents() {
   const uploadZone = $('#upload-zone');
   const fileInput = $('#file-input');
 
+  if (!uploadZone || !fileInput) return;
+
   const newUploadZone = uploadZone.cloneNode(true);
   uploadZone.parentNode.replaceChild(newUploadZone, uploadZone);
   const currentUploadZone = $('#upload-zone');
@@ -190,14 +192,21 @@ function wireSubjectEvents() {
   });
 
   const generateBtn = $('#generate-exam-btn');
-  const newGenerateBtn = generateBtn.cloneNode(true);
-  generateBtn.parentNode.replaceChild(newGenerateBtn, generateBtn);
+  if (generateBtn) {
+    const newGenerateBtn = generateBtn.cloneNode(true);
+    generateBtn.parentNode.replaceChild(newGenerateBtn, generateBtn);
+  }
 
   const qInput = $('#question-count');
-  const newQInput = qInput.cloneNode(true);
-  qInput.parentNode.replaceChild(newQInput, qInput);
+  if (qInput) {
+    const newQInput = qInput.cloneNode(true);
+    qInput.parentNode.replaceChild(newQInput, qInput);
+  }
 
-  $('#generate-exam-btn').addEventListener('click', async () => {
+  const newGenerateBtnEl = $('#generate-exam-btn');
+  if (!newGenerateBtnEl) return;
+
+  newGenerateBtnEl.addEventListener('click', async () => {
     const checkboxes = $$('.doc-checkbox:checked');
     const docIds = Array.from(checkboxes).map(cb => cb.value);
     if (docIds.length === 0) {
@@ -219,11 +228,13 @@ function wireSubjectEvents() {
     }
   });
 
-  document.querySelectorAll('[data-action="delete-document"]').forEach(btn => {
+  const deleteBtns = document.querySelectorAll('[data-action="delete-document"]');
+  deleteBtns.forEach(btn => {
+    if (!btn) return;
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const id = btn.dataset.id;
-      const filename = btn.dataset.filename;
+      const filename = btn.dataset.filename || 'este documento';
       const confirmed = await showConfirmModal({
         title: 'Eliminar documento',
         message: `¿Estás seguro de que quieres eliminar "${filename}"? Esta acción no se puede deshacer.`,

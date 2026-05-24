@@ -42,13 +42,20 @@ function initSidebarBehavior() {
   const toggle = $('#sidebar-toggle');
   const mobileBtn = $('#mobile-menu-btn');
 
+  if (!sidebar || !backdrop || !toggle || !mobileBtn) return;
+
   function isMobile() {
     return window.innerWidth < 768;
   }
 
+  function isMobileSidebarOpen() {
+    return isMobile() && sidebar.classList.contains('mobile-open');
+  }
+
   function updateMobileBtnVisibility() {
-    // Visible on mobile always, or on desktop when sidebar is collapsed
-    if (isMobile() || sidebar.classList.contains('desktop-collapsed')) {
+    if (isMobileSidebarOpen()) {
+      mobileBtn.classList.add('hidden');
+    } else if (isMobile() || sidebar.classList.contains('desktop-collapsed')) {
       mobileBtn.classList.remove('hidden');
     } else {
       mobileBtn.classList.add('hidden');
@@ -57,8 +64,8 @@ function initSidebarBehavior() {
 
   function setDesktopCollapsed(collapsed) {
     sidebar.classList.toggle('desktop-collapsed', collapsed);
-    updateMobileBtnVisibility();
     localStorage.setItem('sidebar_collapsed', collapsed ? 'true' : 'false');
+    updateMobileBtnVisibility();
   }
 
   function getDesktopCollapsed() {
@@ -68,14 +75,15 @@ function initSidebarBehavior() {
   function closeMobileSidebar() {
     sidebar.classList.remove('mobile-open');
     backdrop.classList.add('hidden');
+    updateMobileBtnVisibility();
   }
 
   function openMobileSidebar() {
     sidebar.classList.add('mobile-open');
     backdrop.classList.remove('hidden');
+    updateMobileBtnVisibility();
   }
 
-  // Sidebar toggle (inside sidebar header — collapses on desktop, closes on mobile)
   toggle.addEventListener('click', () => {
     if (isMobile()) {
       closeMobileSidebar();
@@ -84,19 +92,22 @@ function initSidebarBehavior() {
     }
   });
 
-  // Universal reopen button: desktop reopen + mobile hamburger
   mobileBtn.addEventListener('click', () => {
     if (sidebar.classList.contains('desktop-collapsed')) {
       setDesktopCollapsed(false);
     } else if (isMobile()) {
-      openMobileSidebar();
+      if (isMobileSidebarOpen()) {
+        closeMobileSidebar();
+      } else {
+        openMobileSidebar();
+      }
     }
   });
 
-  // Backdrop click closes mobile sidebar
-  backdrop.addEventListener('click', closeMobileSidebar);
+  if (backdrop) {
+    backdrop.addEventListener('click', closeMobileSidebar);
+  }
 
-  // Handle resize
   let prevMobile = isMobile();
   window.addEventListener('resize', () => {
     const nowMobile = isMobile();
@@ -116,7 +127,6 @@ function initSidebarBehavior() {
     updateMobileBtnVisibility();
   });
 
-  // Initial state
   if (isMobile()) {
     closeMobileSidebar();
   } else if (getDesktopCollapsed()) {
@@ -124,7 +134,6 @@ function initSidebarBehavior() {
   }
   updateMobileBtnVisibility();
 
-  // Close mobile sidebar when selecting a subject
   document.addEventListener('click', (e) => {
     const subjectItem = e.target.closest('#subjects-list [data-nav="subject"]');
     if (subjectItem && isMobile()) {
@@ -132,52 +141,56 @@ function initSidebarBehavior() {
     }
   });
 
-  // Inline create: show input on + button click
+  // Inline create
   const addBtn = $('#add-subject-btn');
   const inlineCreate = $('#inline-create');
   const inlineInput = $('#inline-subject-input');
 
-  addBtn.addEventListener('click', () => {
-    inlineCreate.classList.remove('hidden');
-    inlineInput.value = '';
-    inlineInput.focus();
-  });
+  if (addBtn && inlineCreate && inlineInput) {
+    addBtn.addEventListener('click', () => {
+      inlineCreate.classList.remove('hidden');
+      inlineInput.value = '';
+      inlineInput.focus();
+    });
 
-  inlineInput.addEventListener('keydown', async (e) => {
-    if (e.key === 'Enter') {
-      const name = inlineInput.value.trim();
-      if (!name) {
-        inlineCreate.classList.add('hidden');
-        return;
-      }
-      const result = await createSubject(name);
-      if (result) {
+    inlineInput.addEventListener('keydown', async (e) => {
+      if (e.key === 'Enter') {
+        const name = inlineInput.value.trim();
+        if (!name) {
+          inlineCreate.classList.add('hidden');
+          return;
+        }
+        const result = await createSubject(name);
+        if (result) {
+          inlineCreate.classList.add('hidden');
+          inlineInput.value = '';
+          window.dispatchEvent(new CustomEvent('sidebar:refresh'));
+          window.dispatchEvent(new CustomEvent('nav:subject', {
+            detail: { subjectId: result.id, subjectName: result.name }
+          }));
+        }
+      } else if (e.key === 'Escape') {
         inlineCreate.classList.add('hidden');
         inlineInput.value = '';
-        window.dispatchEvent(new CustomEvent('sidebar:refresh'));
-        window.dispatchEvent(new CustomEvent('nav:subject', {
-          detail: { subjectId: result.id, subjectName: result.name }
-        }));
       }
-    } else if (e.key === 'Escape') {
-      inlineCreate.classList.add('hidden');
-      inlineInput.value = '';
-    }
-  });
+    });
 
-  inlineInput.addEventListener('blur', () => {
-    setTimeout(() => {
-      if (inlineInput.value.trim() === '') {
-        inlineCreate.classList.add('hidden');
-      }
-    }, 150);
-  });
+    inlineInput.addEventListener('blur', () => {
+      setTimeout(() => {
+        if (inlineInput.value.trim() === '') {
+          inlineCreate.classList.add('hidden');
+        }
+      }, 150);
+    });
+  }
 }
 
 function initSettingsMenu() {
   const btn = $('#settings-btn');
   const menu = $('#settings-menu');
   const logoutBtn = $('#logout-btn');
+
+  if (!btn || !menu || !logoutBtn) return;
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -188,14 +201,12 @@ function initSettingsMenu() {
     logout();
   });
 
-  // Close menu when clicking outside
   document.addEventListener('click', (e) => {
     if (!menu.contains(e.target) && !btn.contains(e.target)) {
       menu.classList.add('hidden');
     }
   });
 
-  // Close menu on Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') menu.classList.add('hidden');
   });

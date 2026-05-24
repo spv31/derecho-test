@@ -122,14 +122,14 @@
     <!-- Backdrop for mobile sidebar -->
     <div id="sidebar-backdrop" class="hidden fixed inset-0 bg-black/50 z-20 md:hidden"></div>
 
-    <!-- Mobile open sidebar button (visible when sidebar hidden on mobile) -->
-    <button id="mobile-menu-btn" class="hidden fixed top-3 left-3 z-40 bg-brand-surface border border-brand-border rounded-lg p-2 text-brand-muted hover:text-brand-text transition-colors shadow-lg">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-    </button>
-
     <!-- Main content -->
     <main id="main-content" class="flex-1 overflow-y-auto p-6"></main>
   </div>
+
+  <!-- Mobile open sidebar button (outside #app-layout to avoid flex context) -->
+  <button id="mobile-menu-btn" class="hidden fixed top-3 left-3 z-40 bg-brand-surface border border-brand-border rounded-lg p-2 text-brand-muted hover:text-brand-text transition-colors shadow-lg">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
+  </button>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script type="module" src="./js/main.js"></script>

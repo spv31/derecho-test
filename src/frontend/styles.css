@@ -33,3 +33,10 @@ input:focus, button:focus-visible { outline: none; }
 #settings-menu {
   animation: fadeIn 0.15s ease;
 }
+
+/* Reopen / hamburger button — force block when visible */
+#mobile-menu-btn:not(.hidden) {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
