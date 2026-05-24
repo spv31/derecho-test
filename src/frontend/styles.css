@@ -18,3 +18,12 @@ input:focus, button:focus-visible { outline: none; ring: 2px solid #7c3aed; }
 #sidebar { width: 260px; }
 #sidebar.desktop-collapsed { width: 0 !important; min-width: 0; padding: 0; overflow: hidden; border-right: none; }
 #sidebar.mobile-open { transform: translateX(0) !important; }
+
+/* Doc selector: checked state */
+#doc-selector label:has(input:checked) {
+  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.08);
+}
+#doc-selector label:has(input:checked) svg {
+  color: #7c3aed;
+}
