@@ -107,7 +107,7 @@
         <div id="upload-zone" class="border-2 border-dashed border-brand-border rounded-lg p-6 text-center cursor-pointer transition-colors hover:border-brand-accent/50 mb-4">
           <svg class="w-8 h-8 mx-auto mb-2 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
           <p class="text-brand-muted font-mono text-xs">Arrastra PDF o PPTX aquí o haz clic para seleccionar</p>
-          <input id="file-input" type="file" accept=".pdf,.pptx" class="hidden" />
+          <input id="file-input" type="file" accept=".pdf,.pptx" multiple class="hidden" />
         </div>
 
         <div id="documents-list" class="space-y-2"></div>
@@ -567,33 +567,54 @@
     uploadZone.addEventListener('drop', (e) => {
       e.preventDefault();
       uploadZone.classList.remove('drag-over');
-      if (e.dataTransfer.files.length) handleFileUpload(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files.length) handleFileUpload(Array.from(e.dataTransfer.files));
     });
     fileInput.addEventListener('change', () => {
-      if (fileInput.files.length) handleFileUpload(fileInput.files[0]);
+      if (fileInput.files.length) handleFileUpload(Array.from(fileInput.files));
     });
 
-    async function handleFileUpload(file) {
+    async function handleFileUpload(files) {
       const maxSize = 25 * 1024 * 1024;
-      if (file.size > maxSize) {
-        showToast('Fichero demasiado grande (máx 25 MB)', 'error');
+      const validFiles = [];
+      const errors = [];
+      for (const file of files) {
+        if (file.size > maxSize) {
+          errors.push(`${file.name}: demasiado grande`);
+          continue;
+        }
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (!['pdf', 'pptx'].includes(ext)) {
+          errors.push(`${file.name}: formato no soportado`);
+          continue;
+        }
+        validFiles.push(file);
+      }
+      if (validFiles.length === 0) {
+        showToast(errors.join(', '), 'error');
         return;
       }
-      const ext = file.name.split('.').pop().toLowerCase();
-      if (!['pdf', 'pptx'].includes(ext)) {
-        showToast('Formato no soportado. Solo PDF y PPTX', 'error');
-        return;
+      let successCount = 0;
+      let failCount = 0;
+      for (let i = 0; i < validFiles.length; i++) {
+        showToast(`Subiendo ${i + 1}/${validFiles.length}...`, 'info');
+        const fd = new FormData();
+        fd.append('files', validFiles[i]);
+        const result = await apiFetch(`/api/subjects/${state.currentSubjectId}/documents`, {
+          method: 'POST',
+          body: fd,
+        });
+        if (result) {
+          successCount++;
+        } else {
+          failCount++;
+        }
       }
-      const fd = new FormData();
-      fd.append('file', file);
-      const result = await apiFetch(`/api/subjects/${state.currentSubjectId}/documents`, {
-        method: 'POST',
-        body: fd,
-      });
-      if (result) {
-        showToast(`${file.name} subido correctamente`, 'success');
-        await loadSubjectData();
+      if (failCount === 0) {
+        showToast(`${successCount} ficheros subidos correctamente`, 'success');
+      } else {
+        showToast(`${successCount} de ${validFiles.length} subidos (${failCount} error)`, 'error');
       }
+      await loadSubjectData();
     }
 
     // Generate exam

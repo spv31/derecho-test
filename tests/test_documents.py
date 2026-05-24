@@ -101,37 +101,42 @@ class TestDocuments:
         with use_documents_overrides():
             resp = client.post(
                 "/api/subjects/subj-1/documents",
-                files={"file": ("test.pdf", pdf_bytes, "application/pdf")},
+                files=[("files", ("test.pdf", pdf_bytes, "application/pdf"))],
                 headers={"Authorization": "Bearer test"},
             )
         assert resp.status_code == 201, resp.text
         data = resp.json()
-        assert data["status"] == "ready"
-        assert data["char_count"] > 0
-        assert data["filename"] == "test.pdf"
-        assert "id" in data
+        assert len(data) == 1
+        assert data[0]["status"] == "ready"
+        assert data[0]["char_count"] > 0
+        assert data[0]["filename"] == "test.pdf"
+        assert "id" in data[0]
 
     def test_upload_pptx_returns_201(self, client):
         pptx_bytes = _make_minimal_pptx()
         with use_documents_overrides():
             resp = client.post(
                 "/api/subjects/subj-1/documents",
-                files={"file": ("test.pptx", pptx_bytes, "application/vnd.openxmlformats-officedocument.presentationml.presentation")},
+                files=[("files", ("test.pptx", pptx_bytes, "application/vnd.openxmlformats-officedocument.presentationml.presentation"))],
                 headers={"Authorization": "Bearer test"},
             )
         assert resp.status_code == 201, resp.text
         data = resp.json()
-        assert data["status"] == "ready"
-        assert data["char_count"] > 0
+        assert len(data) == 1
+        assert data[0]["status"] == "ready"
+        assert data[0]["char_count"] > 0
 
-    def test_upload_txt_returns_400(self, client):
+    def test_upload_txt_returns_error(self, client):
         with use_documents_overrides():
             resp = client.post(
                 "/api/subjects/subj-1/documents",
-                files={"file": ("notes.txt", b"some text", "text/plain")},
+                files=[("files", ("notes.txt", b"some text", "text/plain"))],
                 headers={"Authorization": "Bearer test"},
             )
-        assert resp.status_code == 400
+        assert resp.status_code == 201, resp.text
+        data = resp.json()
+        assert len(data) == 1
+        assert data[0]["status"] == "error"
 
     def test_upload_to_other_users_subject_returns_404(self, client):
         db = TestingSessionLocal()
@@ -143,7 +148,7 @@ class TestDocuments:
         with use_documents_overrides():
             resp = client.post(
                 "/api/subjects/subj-other/documents",
-                files={"file": ("test.pdf", pdf_bytes, "application/pdf")},
+                files=[("files", ("test.pdf", pdf_bytes, "application/pdf"))],
                 headers={"Authorization": "Bearer test"},
             )
         assert resp.status_code == 404
@@ -210,3 +215,27 @@ class TestDocuments:
         with use_documents_overrides():
             resp = client.delete("/api/documents/doc-other", headers={"Authorization": "Bearer test"})
         assert resp.status_code == 404
+
+    def test_upload_multiple_files_returns_201(self, client):
+        pdf_bytes = _make_minimal_pdf("First file")
+        pdf_bytes2 = _make_minimal_pdf("Second file")
+        with use_documents_overrides():
+            resp = client.post(
+                "/api/subjects/subj-1/documents",
+                files=[
+                    ("files", ("first.pdf", pdf_bytes, "application/pdf")),
+                    ("files", ("second.pdf", pdf_bytes2, "application/pdf")),
+                ],
+                headers={"Authorization": "Bearer test"},
+            )
+        assert resp.status_code == 201, resp.text
+        data = resp.json()
+        assert len(data) == 2
+        assert data[0]["status"] == "ready"
+        assert data[1]["status"] == "ready"
+        assert data[0]["filename"] == "first.pdf"
+        assert data[1]["filename"] == "second.pdf"
+        db = TestingSessionLocal()
+        docs = db.query(Document).filter(Document.subject_id == "subj-1").all()
+        assert len(docs) == 2
+        db.close()

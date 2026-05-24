@@ -77,40 +77,46 @@ def list_documents(
     ]
 
 
-@router.post("/api/subjects/{subject_id}/documents", status_code=201, response_model=DocumentCreateOut)
+@router.post("/api/subjects/{subject_id}/documents", status_code=201, response_model=List[DocumentCreateOut])
 def create_document(
     subject_id: str,
-    file: UploadFile = File(...),
+    files: List[UploadFile] = File(...),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
     subject = _get_user_subject(subject_id, user, db)
+    results: List[DocumentCreateOut] = []
 
-    ext = _get_extension(file.filename or "")
-    if ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(status_code=400, detail="Unsupported file type. Only .pdf and .pptx allowed.")
+    for file in files:
+        ext = _get_extension(file.filename or "")
+        if ext not in ALLOWED_EXTENSIONS:
+            results.append(DocumentCreateOut(id="", filename=file.filename or "unknown", status="error"))
+            continue
 
-    content = file.file.read()
-    if len(content) > MAX_FILE_SIZE:
-        raise HTTPException(status_code=413, detail="File too large. Maximum size is 25 MB.")
+        content = file.file.read()
+        if len(content) > MAX_FILE_SIZE:
+            results.append(DocumentCreateOut(id="", filename=file.filename or "unknown", status="error"))
+            continue
 
-    try:
-        raw_text = _extract_text(file.filename or "", content)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Corrupt or unreadable file.")
+        try:
+            raw_text = _extract_text(file.filename or "", content)
+        except Exception:
+            results.append(DocumentCreateOut(id="", filename=file.filename or "unknown", status="error"))
+            continue
 
-    doc = Document(
-        subject_id=subject.id,
-        filename=file.filename or "unknown",
-        raw_text=raw_text,
-        char_count=len(raw_text),
-        status="ready",
-    )
-    db.add(doc)
-    db.commit()
-    db.refresh(doc)
+        doc = Document(
+            subject_id=subject.id,
+            filename=file.filename or "unknown",
+            raw_text=raw_text,
+            char_count=len(raw_text),
+            status="ready",
+        )
+        db.add(doc)
+        db.commit()
+        db.refresh(doc)
+        results.append(DocumentCreateOut(id=doc.id, filename=doc.filename, status=doc.status, char_count=doc.char_count))
 
-    return DocumentCreateOut(id=doc.id, filename=doc.filename, status=doc.status, char_count=doc.char_count)
+    return results
 
 
 @router.delete("/api/documents/{document_id}", status_code=204)
