@@ -34,6 +34,49 @@ export function showLoading(show) {
   document.getElementById('loading-overlay').classList.toggle('hidden', !show);
 }
 
+export function showConfirmModal({ title, message, confirmText, confirmClass }) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/60';
+
+    const card = document.createElement('div');
+    card.className = 'bg-brand-surface border border-brand-border rounded-xl p-6 max-w-sm w-full mx-4 shadow-xl';
+
+    card.innerHTML = `
+      <h3 class="font-display text-lg font-semibold text-brand-text mb-2">${escapeHtml(title)}</h3>
+      <p class="text-sm text-brand-muted mb-5">${escapeHtml(message)}</p>
+      <div class="flex justify-end gap-3">
+        <button class="cancel-btn px-4 py-2 text-sm rounded-lg border border-brand-border text-brand-muted hover:text-brand-text hover:bg-brand-bg transition-colors">Cancelar</button>
+        <button class="confirm-btn px-4 py-2 text-sm rounded-lg text-white transition-colors ${confirmClass || 'bg-brand-accent hover:bg-brand-accent-h'}">${escapeHtml(confirmText || 'Confirmar')}</button>
+      </div>
+    `;
+
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+
+    function close() {
+      overlay.remove();
+      document.removeEventListener('keydown', handleEscape);
+      resolve(false);
+    }
+
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+
+    card.querySelector('.cancel-btn').addEventListener('click', close);
+
+    card.querySelector('.confirm-btn').addEventListener('click', () => {
+      overlay.remove();
+      document.removeEventListener('keydown', handleEscape);
+      resolve(true);
+    });
+
+    function handleEscape(e) {
+      if (e.key === 'Escape') close();
+    }
+    document.addEventListener('keydown', handleEscape);
+  });
+}
+
 export function parseJwt(token) {
   try {
     return JSON.parse(atob(token.split('.')[1]));

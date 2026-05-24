@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { $, $$, escapeHtml, showToast, showLoading } from '../utils.js';
+import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal } from '../utils.js';
 import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam } from '../api.js';
 
 export async function showSubject(subjectId, subjectName) {
@@ -41,12 +41,12 @@ function getSubjectHtml(subjectName) {
             <div id="doc-selector" class="space-y-2 max-h-56 overflow-y-auto"></div>
             <p id="doc-selector-empty" class="text-sm text-brand-muted/60 py-4 text-center">Sube documentos para poder generar exámenes</p>
           </div>
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-3 pt-4 border-t border-brand-border/50">
-            <div class="flex-1">
-              <label class="text-xs text-brand-muted block mb-1.5">Número de preguntas</label>
-              <input id="question-count" type="number" min="1" max="30" value="5" class="w-full sm:w-28 bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all" />
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-4 border-t border-brand-border/50">
+            <div class="flex items-center gap-2">
+              <input id="question-count" type="number" min="1" max="30" value="5" class="w-16 bg-brand-bg border border-brand-border rounded-lg px-3 py-2.5 text-sm text-brand-text focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all" />
+              <span class="text-sm text-brand-muted">preguntas</span>
             </div>
-            <button id="generate-exam-btn" class="bg-brand-accent hover:bg-brand-accent-h text-white text-sm px-6 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2">
+            <button id="generate-exam-btn" class="sm:ml-auto bg-brand-accent hover:bg-brand-accent-h text-white text-sm px-6 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456z"/></svg>
               Generar examen
             </button>
@@ -107,7 +107,7 @@ function renderDocuments(docs) {
         <span class="text-sm truncate">${escapeHtml(doc.filename)}</span>
         <span class="text-xs ${statusColor}">${statusText}</span>
       </div>
-      <button class="delete-doc-btn text-brand-muted hover:text-brand-error transition-colors ml-2" data-action="delete-document" data-id="${doc.id}" title="Eliminar">
+      <button class="delete-doc-btn text-brand-muted hover:text-brand-error transition-colors ml-2" data-action="delete-document" data-id="${doc.id}" data-filename="${escapeHtml(doc.filename)}" title="Eliminar">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     `;
@@ -223,6 +223,14 @@ function wireSubjectEvents() {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const id = btn.dataset.id;
+      const filename = btn.dataset.filename;
+      const confirmed = await showConfirmModal({
+        title: 'Eliminar documento',
+        message: `¿Estás seguro de que quieres eliminar "${filename}"? Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        confirmClass: 'bg-brand-error hover:bg-red-700',
+      });
+      if (!confirmed) return;
       await deleteDocument(id);
       await loadSubjectData();
     });
