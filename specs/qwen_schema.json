@@ -1,0 +1,45 @@
+{
+  "name": "exam_generation_schema",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Título semántico deducido del material proporcionado."
+      },
+      "questions": {
+        "type": "array",
+        "description": "Lista de preguntas de opción múltiple.",
+        "items": {
+          "type": "object",
+          "properties": {
+            "question": {
+              "type": "string",
+              "description": "Enunciado de la pregunta."
+            },
+            "options": {
+              "type": "array",
+              "description": "Respuestas posibles.",
+              "items": { "type": "string" },
+              "minItems": 3,
+              "maxItems": 5
+            },
+            "explanation": {
+              "type": "string",
+              "description": "Justificación que referencia el material y razona por qué la respuesta es correcta y las demas no. Se genera ANTES de fijar el indice."
+            },
+            "correct_index": {
+              "type": "integer",
+              "description": "Indice base-0 de 'options' con la respuesta correcta."
+            }
+          },
+          "required": ["question", "options", "explanation", "correct_index"],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["title", "questions"],
+    "additionalProperties": false
+  }
+}
