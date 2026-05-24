@@ -2,15 +2,16 @@ import { $ } from '../utils.js';
 import { createSubject } from '../api.js';
 import { logout } from '../auth.js';
 
-let sidebarInitialized = false;
+let initialized = false;
 
 export function renderAppLayout() {
   $('#view-login').classList.add('hidden');
   $('#app-layout').classList.remove('hidden');
-  if (!sidebarInitialized) {
-    initSidebarBehavior();
-    initSettingsMenu();
-    sidebarInitialized = true;
+  if (!initialized) {
+    initialized = true;
+    setupSidebar();
+    setupSettingsMenu();
+    setupInlineCreate();
   }
 }
 
@@ -19,8 +20,7 @@ export function setUserInfo(email) {
   const initialEl = $('#user-initial');
   if (emailEl) emailEl.textContent = email || '';
   if (initialEl) {
-    const initial = email ? email.charAt(0).toUpperCase() : '?';
-    initialEl.textContent = initial;
+    initialEl.textContent = email ? email.charAt(0).toUpperCase() : '?';
   }
 }
 
@@ -36,168 +36,119 @@ export function showEmptyState() {
   `;
 }
 
-function initSidebarBehavior() {
+/* ── Sidebar open/close ── */
+
+function setupSidebar() {
   const sidebar = $('#sidebar');
   const backdrop = $('#sidebar-backdrop');
-  const toggle = $('#sidebar-toggle');
-  const mobileBtn = $('#mobile-menu-btn');
+  const toggleBtn = $('#sidebar-toggle');
+  const reopenBtn = $('#mobile-menu-btn');
 
-  if (!sidebar || !backdrop || !toggle || !mobileBtn) return;
+  if (!sidebar || !toggleBtn || !reopenBtn) return;
 
-  function isMobile() {
-    return window.innerWidth < 768;
+  const isMobile = () => window.innerWidth < 768;
+
+  /* Show / hide the floating reopen button */
+  function syncReopenBtn() {
+    const sidebarHidden = isMobile()
+      ? !sidebar.classList.contains('mobile-open')
+      : sidebar.classList.contains('desktop-collapsed');
+    reopenBtn.classList.toggle('visible', sidebarHidden);
   }
 
-  function isMobileSidebarOpen() {
-    return isMobile() && sidebar.classList.contains('mobile-open');
+  /* Desktop collapse */
+  function setCollapsed(yes) {
+    sidebar.classList.toggle('desktop-collapsed', yes);
+    localStorage.setItem('sidebar_collapsed', yes ? '1' : '');
+    syncReopenBtn();
   }
 
-  function updateMobileBtnVisibility() {
-    if (isMobileSidebarOpen()) {
-      mobileBtn.classList.add('hidden');
-    } else if (isMobile() || sidebar.classList.contains('desktop-collapsed')) {
-      mobileBtn.classList.remove('hidden');
-    } else {
-      mobileBtn.classList.add('hidden');
-    }
-  }
-
-  function setDesktopCollapsed(collapsed) {
-    sidebar.classList.toggle('desktop-collapsed', collapsed);
-    localStorage.setItem('sidebar_collapsed', collapsed ? 'true' : 'false');
-    updateMobileBtnVisibility();
-  }
-
-  function getDesktopCollapsed() {
-    return localStorage.getItem('sidebar_collapsed') === 'true';
-  }
-
-  function closeMobileSidebar() {
-    sidebar.classList.remove('mobile-open');
-    backdrop.classList.add('hidden');
-    updateMobileBtnVisibility();
-  }
-
-  function openMobileSidebar() {
+  /* Mobile drawer */
+  function openDrawer() {
     sidebar.classList.add('mobile-open');
-    backdrop.classList.remove('hidden');
-    updateMobileBtnVisibility();
+    if (backdrop) backdrop.classList.remove('hidden');
+    syncReopenBtn();
+  }
+  function closeDrawer() {
+    sidebar.classList.remove('mobile-open');
+    if (backdrop) backdrop.classList.add('hidden');
+    syncReopenBtn();
   }
 
-  toggle.addEventListener('click', () => {
+  /* Toggle button inside sidebar header */
+  toggleBtn.addEventListener('click', () => {
     if (isMobile()) {
-      closeMobileSidebar();
+      closeDrawer();
     } else {
-      setDesktopCollapsed(!sidebar.classList.contains('desktop-collapsed'));
+      setCollapsed(!sidebar.classList.contains('desktop-collapsed'));
     }
   });
 
-  mobileBtn.addEventListener('click', () => {
-    if (sidebar.classList.contains('desktop-collapsed')) {
-      setDesktopCollapsed(false);
-    } else if (isMobile()) {
-      if (isMobileSidebarOpen()) {
-        closeMobileSidebar();
-      } else {
-        openMobileSidebar();
-      }
+  /* Floating reopen / hamburger button */
+  reopenBtn.addEventListener('click', () => {
+    if (isMobile()) {
+      openDrawer();
+    } else {
+      setCollapsed(false);
     }
   });
 
-  if (backdrop) {
-    backdrop.addEventListener('click', closeMobileSidebar);
-  }
+  /* Backdrop closes mobile drawer */
+  if (backdrop) backdrop.addEventListener('click', closeDrawer);
 
-  let prevMobile = isMobile();
+  /* Resize: clean up state when crossing breakpoint */
+  let wasMobile = isMobile();
   window.addEventListener('resize', () => {
     const nowMobile = isMobile();
-    if (nowMobile !== prevMobile) {
+    if (nowMobile !== wasMobile) {
       if (nowMobile) {
         sidebar.classList.remove('desktop-collapsed');
-        closeMobileSidebar();
+        closeDrawer();
       } else {
         sidebar.classList.remove('mobile-open');
-        backdrop.classList.add('hidden');
-        if (getDesktopCollapsed()) {
+        if (backdrop) backdrop.classList.add('hidden');
+        if (localStorage.getItem('sidebar_collapsed')) {
           sidebar.classList.add('desktop-collapsed');
         }
       }
-      prevMobile = nowMobile;
+      wasMobile = nowMobile;
     }
-    updateMobileBtnVisibility();
+    syncReopenBtn();
   });
 
+  /* Initial state */
   if (isMobile()) {
-    closeMobileSidebar();
-  } else if (getDesktopCollapsed()) {
+    closeDrawer();
+  } else if (localStorage.getItem('sidebar_collapsed')) {
     sidebar.classList.add('desktop-collapsed');
   }
-  updateMobileBtnVisibility();
+  syncReopenBtn();
 
+  /* Auto-close mobile drawer when picking a subject */
   document.addEventListener('click', (e) => {
-    const subjectItem = e.target.closest('#subjects-list [data-nav="subject"]');
-    if (subjectItem && isMobile()) {
-      closeMobileSidebar();
+    if (e.target.closest('#subjects-list [data-nav="subject"]') && isMobile()) {
+      closeDrawer();
     }
   });
-
-  // Inline create
-  const addBtn = $('#add-subject-btn');
-  const inlineCreate = $('#inline-create');
-  const inlineInput = $('#inline-subject-input');
-
-  if (addBtn && inlineCreate && inlineInput) {
-    addBtn.addEventListener('click', () => {
-      inlineCreate.classList.remove('hidden');
-      inlineInput.value = '';
-      inlineInput.focus();
-    });
-
-    inlineInput.addEventListener('keydown', async (e) => {
-      if (e.key === 'Enter') {
-        const name = inlineInput.value.trim();
-        if (!name) {
-          inlineCreate.classList.add('hidden');
-          return;
-        }
-        const result = await createSubject(name);
-        if (result) {
-          inlineCreate.classList.add('hidden');
-          inlineInput.value = '';
-          window.dispatchEvent(new CustomEvent('sidebar:refresh'));
-          window.dispatchEvent(new CustomEvent('nav:subject', {
-            detail: { subjectId: result.id, subjectName: result.name }
-          }));
-        }
-      } else if (e.key === 'Escape') {
-        inlineCreate.classList.add('hidden');
-        inlineInput.value = '';
-      }
-    });
-
-    inlineInput.addEventListener('blur', () => {
-      setTimeout(() => {
-        if (inlineInput.value.trim() === '') {
-          inlineCreate.classList.add('hidden');
-        }
-      }, 150);
-    });
-  }
 }
 
-function initSettingsMenu() {
+/* ── Settings dropdown ── */
+
+function setupSettingsMenu() {
   const btn = $('#settings-btn');
   const menu = $('#settings-menu');
   const logoutBtn = $('#logout-btn');
-
   if (!btn || !menu || !logoutBtn) return;
 
   btn.addEventListener('click', (e) => {
+    e.preventDefault();
     e.stopPropagation();
     menu.classList.toggle('hidden');
   });
 
-  logoutBtn.addEventListener('click', () => {
+  logoutBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    menu.classList.add('hidden');
     logout();
   });
 
@@ -209,5 +160,49 @@ function initSettingsMenu() {
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') menu.classList.add('hidden');
+  });
+}
+
+/* ── Inline create subject ── */
+
+function setupInlineCreate() {
+  const addBtn = $('#add-subject-btn');
+  const wrapper = $('#inline-create');
+  const input = $('#inline-subject-input');
+  if (!addBtn || !wrapper || !input) return;
+
+  addBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    wrapper.classList.remove('hidden');
+    input.value = '';
+    // Defer focus so browser finishes click processing first
+    requestAnimationFrame(() => input.focus());
+  });
+
+  input.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const name = input.value.trim();
+      if (!name) { wrapper.classList.add('hidden'); return; }
+      const result = await createSubject(name);
+      if (result) {
+        wrapper.classList.add('hidden');
+        input.value = '';
+        window.dispatchEvent(new CustomEvent('sidebar:refresh'));
+        window.dispatchEvent(new CustomEvent('nav:subject', {
+          detail: { subjectId: result.id, subjectName: result.name },
+        }));
+      }
+    } else if (e.key === 'Escape') {
+      wrapper.classList.add('hidden');
+      input.value = '';
+    }
+  });
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => {
+      if (!input.value.trim()) wrapper.classList.add('hidden');
+    }, 200);
   });
 }

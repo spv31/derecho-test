@@ -20,6 +20,10 @@ input:focus, button:focus-visible { outline: none; }
 #sidebar.desktop-collapsed { width: 0 !important; min-width: 0; padding: 0; overflow: hidden; border-right: none; }
 #sidebar.mobile-open { transform: translateX(0) !important; }
 
+/* Reopen button: hidden by default, shown via JS class */
+.sidebar-reopen-btn { display: none !important; }
+.sidebar-reopen-btn.visible { display: flex !important; align-items: center; justify-content: center; }
+
 /* Doc selector: checked state */
 #doc-selector label:has(input:checked) {
   border-color: #7c3aed;
@@ -30,13 +34,6 @@ input:focus, button:focus-visible { outline: none; }
 }
 
 /* Settings dropdown animation */
-#settings-menu {
+#settings-menu:not(.hidden) {
   animation: fadeIn 0.15s ease;
-}
-
-/* Reopen / hamburger button — force block when visible */
-#mobile-menu-btn:not(.hidden) {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
 }

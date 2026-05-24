@@ -1,11 +1,13 @@
 import { state } from './state.js';
-import { $, showToast } from './utils.js';
+import { $ } from './utils.js';
 import { getSubjects, deleteSubject } from './api.js';
 import { renderLogin } from './views/login.js';
 import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js';
 import { renderSubjectsList } from './views/sidebar.js';
 import { showSubject } from './views/subject.js';
 import { showExam } from './views/exam.js';
+
+/* ── Boot ── */
 
 function init() {
   if (state.token) {
@@ -18,33 +20,35 @@ function init() {
 async function showApp() {
   renderAppLayout();
   setUserInfo(state.userEmail);
+
   const subjects = await getSubjects();
-  if (subjects === null) return;
-  state.subjects = subjects || [];
+  if (subjects === null) return;          // API error — layout stays visible
+  state.subjects = subjects;
+
   renderSubjectsList(state.subjects, null);
   showEmptyState();
-  wireSidebarEvents();
-  wireNavigationEvents();
+  wireSidebarClicks();
+  wireNavigation();
 }
 
-function wireSidebarEvents() {
-  const subjectsList = $('#subjects-list');
+/* ── Sidebar subject list clicks ── */
 
-  subjectsList.addEventListener('click', async (e) => {
+function wireSidebarClicks() {
+  const list = $('#subjects-list');
+  if (!list) return;
+
+  list.addEventListener('click', async (e) => {
     const subjectItem = e.target.closest('[data-nav="subject"]');
     if (subjectItem) {
-      const id = subjectItem.dataset.id;
-      const name = subjectItem.dataset.name;
-      if (id && name) {
-        await navigateToSubject(id, name);
-      }
+      const { id, name } = subjectItem.dataset;
+      if (id && name) await navigateToSubject(id, name);
       return;
     }
 
-    const deleteBtn = e.target.closest('[data-action="delete-subject"]');
-    if (deleteBtn) {
+    const delBtn = e.target.closest('[data-action="delete-subject"]');
+    if (delBtn) {
       e.stopPropagation();
-      const id = deleteBtn.dataset.id;
+      const id = delBtn.dataset.id;
       await deleteSubject(id);
       await refreshSidebar();
       if (state.currentSubjectId === id) {
@@ -52,25 +56,26 @@ function wireSidebarEvents() {
         state.currentSubjectName = null;
         showEmptyState();
       }
-      return;
     }
   });
 }
 
-function wireNavigationEvents() {
-  const mainContent = document.getElementById('main-content');
-  if (!mainContent) return;
+/* ── Main-content navigation ── */
 
-  mainContent.addEventListener('click', (e) => {
-    const navEl = e.target.closest('[data-nav]');
-    if (!navEl) return;
-    const action = navEl.dataset.nav;
+function wireNavigation() {
+  const main = $('#main-content');
+  if (!main) return;
 
+  main.addEventListener('click', (e) => {
+    const nav = e.target.closest('[data-nav]');
+    if (!nav) return;
+
+    const action = nav.dataset.nav;
     if (action === 'back-to-subjects') {
-      showEmptyState();
       state.currentSubjectId = null;
       state.currentSubjectName = null;
       renderSubjectsList(state.subjects, null);
+      showEmptyState();
     } else if (action === 'back-to-subject') {
       if (state.currentSubjectId && state.currentSubjectName) {
         navigateToSubject(state.currentSubjectId, state.currentSubjectName);
@@ -78,34 +83,32 @@ function wireNavigationEvents() {
         showEmptyState();
       }
     } else if (action === 'exam') {
-      const examId = navEl.dataset.examId;
+      const examId = nav.dataset.examId;
       if (examId) navigateToExam(examId);
     }
   });
 
   window.addEventListener('nav:subject', (e) => {
     const { subjectId, subjectName } = e.detail;
-    if (subjectId && subjectName) {
-      navigateToSubject(subjectId, subjectName);
-    } else {
-      showEmptyState();
-    }
+    if (subjectId && subjectName) navigateToSubject(subjectId, subjectName);
+    else showEmptyState();
   });
 
   window.addEventListener('nav:exam', (e) => {
-    const { examId } = e.detail;
-    if (examId) navigateToExam(examId);
+    if (e.detail.examId) navigateToExam(e.detail.examId);
   });
 }
 
-async function navigateToSubject(subjectId, subjectName) {
-  state.currentSubjectId = subjectId;
-  state.currentSubjectName = subjectName;
+/* ── Helpers ── */
+
+async function navigateToSubject(id, name) {
+  state.currentSubjectId = id;
+  state.currentSubjectName = name;
   state.currentExamId = null;
   state.examQuestions = [];
   state.userAnswers = [];
-  renderSubjectsList(state.subjects, subjectId);
-  await showSubject(subjectId, subjectName);
+  renderSubjectsList(state.subjects, id);
+  await showSubject(id, name);
 }
 
 async function navigateToExam(examId) {
@@ -115,18 +118,15 @@ async function navigateToExam(examId) {
 async function refreshSidebar() {
   const subjects = await getSubjects();
   if (subjects === null) return;
-  state.subjects = subjects || [];
+  state.subjects = subjects;
   renderSubjectsList(state.subjects, state.currentSubjectId);
 }
 
-window.addEventListener('sidebar:refresh', refreshSidebar);
+/* ── Global events ── */
 
+window.addEventListener('sidebar:refresh', refreshSidebar);
 window.addEventListener('auth:login', showApp);
-window.addEventListener('auth:logout', () => {
-  renderLogin();
-});
-window.addEventListener('auth:expired', () => {
-  renderLogin();
-});
+window.addEventListener('auth:logout', () => renderLogin());
+window.addEventListener('auth:expired', () => renderLogin());
 
 init();
