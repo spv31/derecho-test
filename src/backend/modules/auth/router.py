@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
-import requests
 from fastapi import APIRouter, Depends, HTTPException
+from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 from jose import jwt
 from pydantic import BaseModel
@@ -40,7 +40,7 @@ def config():
 def auth_google(body: GoogleAuthRequest, db: Session = Depends(get_db)):
     try:
         info = google_id_token.verify_oauth2_token(
-            body.id_token, requests.Request(), audience=settings.google_client_id
+            body.id_token, google_requests.Request(), audience=settings.google_client_id
         )
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid or expired Google ID token")
