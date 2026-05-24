@@ -1,6 +1,6 @@
-import { state } from './state.js?v=2';
-import { $, parseJwt } from './utils.js?v=2';
-import { apiFetch } from './api.js?v=2';
+import { state } from './state.js?v=1';
+import { $, parseJwt } from './utils.js?v=1';
+import { apiFetch } from './api.js?v=1';
 
 export async function initLogin() {
   const config = await apiFetch('/api/config');
