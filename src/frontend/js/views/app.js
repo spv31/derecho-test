@@ -1,4 +1,6 @@
 import { $ } from '../utils.js';
+import { createSubject } from '../api.js';
+import { logout } from '../auth.js';
 
 let sidebarInitialized = false;
 
@@ -44,8 +46,18 @@ function initSidebarBehavior() {
     return window.innerWidth < 768;
   }
 
+  function updateMobileBtnVisibility() {
+    // Visible on mobile always, or on desktop when sidebar is collapsed
+    if (isMobile() || sidebar.classList.contains('desktop-collapsed')) {
+      mobileBtn.classList.remove('hidden');
+    } else {
+      mobileBtn.classList.add('hidden');
+    }
+  }
+
   function setDesktopCollapsed(collapsed) {
     sidebar.classList.toggle('desktop-collapsed', collapsed);
+    updateMobileBtnVisibility();
     localStorage.setItem('sidebar_collapsed', collapsed ? 'true' : 'false');
   }
 
@@ -72,9 +84,13 @@ function initSidebarBehavior() {
     }
   });
 
-  // Mobile hamburger button (floating, outside sidebar — opens sidebar)
+  // Universal reopen button: desktop reopen + mobile hamburger
   mobileBtn.addEventListener('click', () => {
-    openMobileSidebar();
+    if (sidebar.classList.contains('desktop-collapsed')) {
+      setDesktopCollapsed(false);
+    } else if (isMobile()) {
+      openMobileSidebar();
+    }
   });
 
   // Backdrop click closes mobile sidebar
@@ -97,6 +113,7 @@ function initSidebarBehavior() {
       }
       prevMobile = nowMobile;
     }
+    updateMobileBtnVisibility();
   });
 
   // Initial state
@@ -105,6 +122,7 @@ function initSidebarBehavior() {
   } else if (getDesktopCollapsed()) {
     sidebar.classList.add('desktop-collapsed');
   }
+  updateMobileBtnVisibility();
 
   // Close mobile sidebar when selecting a subject
   document.addEventListener('click', (e) => {
@@ -113,15 +131,61 @@ function initSidebarBehavior() {
       closeMobileSidebar();
     }
   });
+
+  // Inline create: show input on + button click
+  const addBtn = $('#add-subject-btn');
+  const inlineCreate = $('#inline-create');
+  const inlineInput = $('#inline-subject-input');
+
+  addBtn.addEventListener('click', () => {
+    inlineCreate.classList.remove('hidden');
+    inlineInput.value = '';
+    inlineInput.focus();
+  });
+
+  inlineInput.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') {
+      const name = inlineInput.value.trim();
+      if (!name) {
+        inlineCreate.classList.add('hidden');
+        return;
+      }
+      const result = await createSubject(name);
+      if (result) {
+        inlineCreate.classList.add('hidden');
+        inlineInput.value = '';
+        window.dispatchEvent(new CustomEvent('sidebar:refresh'));
+        window.dispatchEvent(new CustomEvent('nav:subject', {
+          detail: { subjectId: result.id, subjectName: result.name }
+        }));
+      }
+    } else if (e.key === 'Escape') {
+      inlineCreate.classList.add('hidden');
+      inlineInput.value = '';
+    }
+  });
+
+  inlineInput.addEventListener('blur', () => {
+    setTimeout(() => {
+      if (inlineInput.value.trim() === '') {
+        inlineCreate.classList.add('hidden');
+      }
+    }, 150);
+  });
 }
 
 function initSettingsMenu() {
   const btn = $('#settings-btn');
   const menu = $('#settings-menu');
+  const logoutBtn = $('#logout-btn');
 
   btn.addEventListener('click', (e) => {
     e.stopPropagation();
     menu.classList.toggle('hidden');
+  });
+
+  logoutBtn.addEventListener('click', () => {
+    logout();
   });
 
   // Close menu when clicking outside

@@ -1,7 +1,6 @@
 import { state } from './state.js';
 import { $, showToast } from './utils.js';
-import { getSubjects, createSubject, deleteSubject } from './api.js';
-import { logout } from './auth.js';
+import { getSubjects, deleteSubject } from './api.js';
 import { renderLogin } from './views/login.js';
 import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js';
 import { renderSubjectsList } from './views/sidebar.js';
@@ -26,7 +25,6 @@ async function showApp() {
   showEmptyState();
   wireSidebarEvents();
   wireNavigationEvents();
-  wireSettingsEvents();
 }
 
 function wireSidebarEvents() {
@@ -56,46 +54,6 @@ function wireSidebarEvents() {
       }
       return;
     }
-  });
-
-  // Inline create: show input on + button click
-  const addBtn = $('#add-subject-btn');
-  const inlineCreate = $('#inline-create');
-  const inlineInput = $('#inline-subject-input');
-
-  addBtn.addEventListener('click', () => {
-    inlineCreate.classList.remove('hidden');
-    inlineInput.value = '';
-    inlineInput.focus();
-  });
-
-  inlineInput.addEventListener('keydown', async (e) => {
-    if (e.key === 'Enter') {
-      const name = inlineInput.value.trim();
-      if (!name) {
-        inlineCreate.classList.add('hidden');
-        return;
-      }
-      const result = await createSubject(name);
-      if (result) {
-        inlineCreate.classList.add('hidden');
-        inlineInput.value = '';
-        await refreshSidebar();
-        await navigateToSubject(result.id, result.name);
-      }
-    } else if (e.key === 'Escape') {
-      inlineCreate.classList.add('hidden');
-      inlineInput.value = '';
-    }
-  });
-
-  inlineInput.addEventListener('blur', () => {
-    // Small delay so a click on something else processes first
-    setTimeout(() => {
-      if (inlineInput.value.trim() === '') {
-        inlineCreate.classList.add('hidden');
-      }
-    }, 150);
   });
 }
 
@@ -137,12 +95,6 @@ function wireNavigationEvents() {
   });
 }
 
-function wireSettingsEvents() {
-  $('#logout-btn').addEventListener('click', () => {
-    logout();
-  });
-}
-
 async function navigateToSubject(subjectId, subjectName) {
   state.currentSubjectId = subjectId;
   state.currentSubjectName = subjectName;
@@ -163,6 +115,8 @@ async function refreshSidebar() {
   state.subjects = subjects || [];
   renderSubjectsList(state.subjects, state.currentSubjectId);
 }
+
+window.addEventListener('sidebar:refresh', refreshSidebar);
 
 window.addEventListener('auth:login', showApp);
 window.addEventListener('auth:logout', () => {
