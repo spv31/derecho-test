@@ -131,3 +131,54 @@ Acceder a un recurso de otro usuario => 404 (no 403, para no filtrar existencia)
   - Response 200: Array<{ id, score, total, percentage, answers, created_at }>
 
     (intentos del usuario para este examen, ordenados por fecha descendente)
+
+## Resúmenes
+
+- GET /api/subjects/:subject_id/summaries
+  - Response 200: Array<{ id, title, document_ids, created_at, updated_at }>
+
+    (solo del usuario, ordenados por updated_at descendente)
+
+- POST /api/subjects/:subject_id/summaries/generate
+  - Request: { "document_ids": [string] }
+
+  - Response 201: { id, subject_id, title, content, document_ids, created_at, updated_at }
+
+    content es Markdown. document_ids es el array de IDs usados para generarlo.
+
+  - Response 404 si el subject no es del usuario o alguno de los documentos no existe en él
+
+  - Response 422 si document_ids está vacío o ausente
+
+  - Response 502: error del proveedor LLM (timeout, 429, 500, salida inválida)
+
+- GET /api/summaries/:summary_id
+  - Response 200: { id, subject_id, title, content, document_ids, created_at, updated_at }
+
+  - Response 404 si no existe o no es del usuario
+
+- PATCH /api/summaries/:summary_id
+  - Request: { "title": string }
+
+  - Response 200: { id, subject_id, title, document_ids, created_at, updated_at }
+
+  - Response 404 si no existe o no es del usuario
+
+  - Response 422 si title está vacío o ausente
+
+- POST /api/summaries/:summary_id/regenerate
+  - Request: { "document_ids": [string] } (opcional; si se omite o es vacío, se usan los documentos originales)
+
+  - Response 200: { id, subject_id, title, content, document_ids, created_at, updated_at }
+
+    Reemplaza title y content del summary existente y actualiza updated_at.
+    Si todos los documentos referenciados ya no existen, devuelve 422.
+
+  - Response 404 si el summary no existe o no es del usuario
+
+  - Response 422 si ningún documento válido está disponible
+
+  - Response 502: error del proveedor LLM
+
+- DELETE /api/summaries/:summary_id
+  - Response 204 / 404

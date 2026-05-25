@@ -47,3 +47,14 @@ CREATE TABLE
     answers_json TEXT NOT NULL, -- JSON array de índices seleccionados [0, 2, null, 1, ...]
     created_at TEXT NOT NULL DEFAULT (datetime ('now'))
   );
+
+CREATE TABLE
+  summaries (
+    id TEXT PRIMARY KEY,
+    subject_id TEXT NOT NULL REFERENCES subjects (id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL, -- resumen en formato Markdown
+    document_ids_json TEXT NOT NULL, -- JSON array de IDs de los documentos usados
+    created_at TEXT NOT NULL DEFAULT (datetime ('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime ('now'))
+  );

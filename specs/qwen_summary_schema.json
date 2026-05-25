@@ -1,0 +1,19 @@
+{
+  "name": "summary_generation_schema",
+  "strict": true,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "Título descriptivo del resumen deducido del material proporcionado. Máximo 100 caracteres."
+      },
+      "content": {
+        "type": "string",
+        "description": "Resumen completo en formato Markdown. Debe usar SOLO los siguientes elementos: encabezados de nivel 2 (##) y 3 (###), negritas (**texto**), cursivas (*texto*), listas con viñetas (- ), listas numeradas (1. ), citas con blockquote (> ), código inline (`código`). NO usar tablas, imágenes ni enlaces."
+      }
+    },
+    "required": ["title", "content"],
+    "additionalProperties": false
+  }
+}
