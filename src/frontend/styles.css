@@ -70,11 +70,8 @@ button:focus-visible {
   width: 260px;
 }
 #sidebar.desktop-collapsed {
-  width: 0 !important;
-  min-width: 0;
-  padding: 0;
-  overflow: hidden;
-  border-right: none;
+  transform: translateX(-100%);
+  border-right-color: transparent;
 }
 #sidebar.mobile-open {
   transform: translateX(0) !important;
@@ -104,14 +101,11 @@ button:focus-visible {
   animation: fadeIn 0.15s ease;
 }
 
-/* Evita que el contenido quede tapado por el botón hamburguesa cuando el sidebar colapsa */
-.sidebar-reopen-btn.visible + main {
-  padding-left: 3.5rem;
-}
+/* Movil: contenido no se solape con hamburguesa cuando sidebar colapsa */
 @media (max-width: 767px) {
   .sidebar-reopen-btn.visible + main {
     padding-left: 1.5rem;
-    padding-top: 3.5rem;
+    padding-top: 5rem;
   }
 }
 
