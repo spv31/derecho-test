@@ -49,6 +49,15 @@ Acceder a un recurso de otro usuario => 404 (no 403, para no filtrar existencia)
 
   - Response 201: { id, name, created_at }
 
+- PATCH /api/subjects/:subject_id
+  - Request: { "name": string }
+
+  - Response 200: { id, name, created_at }
+
+  - Response 404 si no existe o no es del usuario
+
+  - Response 422 si name está vacío o ausente
+
 - DELETE /api/subjects/:subject_id
   - Response 204 (borra en cascada sus documentos y exámenes)
 
@@ -89,6 +98,15 @@ Acceder a un recurso de otro usuario => 404 (no 403, para no filtrar existencia)
 
 - GET /api/exams/:exam_id
   - Response 200: objeto examen completo (para renderizar y corregir en el frontend)
+
+- PATCH /api/exams/:exam_id
+  - Request: { "title": string }
+
+  - Response 200: { id, title, question_count, created_at }
+
+  - Response 404 si no existe o no es del usuario
+
+  - Response 422 si title está vacío o ausente
 
 - DELETE /api/exams/:exam_id
   - Response 204 / 404
