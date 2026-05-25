@@ -38,6 +38,9 @@ function getSubjectHtml(subjectName) {
         <div class="bg-brand-surface border border-brand-border rounded-xl p-5">
           <p class="text-sm text-brand-muted mb-4">Selecciona los documentos que quieres incluir en el examen</p>
           <div class="mb-5">
+            <div id="select-all-row" class="hidden justify-end mb-2">
+              <button id="select-all-btn" class="text-xs text-brand-accent hover:underline transition-colors">Seleccionar todos</button>
+            </div>
             <div id="doc-selector" class="space-y-2 max-h-56 overflow-y-auto"></div>
             <p id="doc-selector-empty" class="text-sm text-brand-muted/60 py-4 text-center">Sube documentos para poder generar exámenes</p>
           </div>
@@ -135,6 +138,18 @@ function renderDocSelector(docs) {
     `;
     container.appendChild(label);
   });
+  const selectAllRow = document.getElementById('select-all-row');
+  if (selectAllRow) {
+    if (ready.length > 0) {
+      selectAllRow.classList.remove('hidden');
+      selectAllRow.classList.add('flex');
+    } else {
+      selectAllRow.classList.add('hidden');
+      selectAllRow.classList.remove('flex');
+    }
+    const btn = document.getElementById('select-all-btn');
+    if (btn) btn.textContent = 'Seleccionar todos';
+  }
 }
 
 function renderExams(exams) {
@@ -167,6 +182,19 @@ function wireSubjectEvents() {
   const fileInput = $('#file-input');
 
   if (!uploadZone || !fileInput) return;
+
+  const selectAllBtn = document.getElementById('select-all-btn');
+  if (selectAllBtn) {
+    const freshBtn = selectAllBtn.cloneNode(true);
+    selectAllBtn.parentNode.replaceChild(freshBtn, selectAllBtn);
+    document.getElementById('select-all-btn').addEventListener('click', () => {
+      const checkboxes = Array.from(document.querySelectorAll('.doc-checkbox'));
+      const allChecked = checkboxes.every(cb => cb.checked);
+      checkboxes.forEach(cb => { cb.checked = !allChecked; });
+      document.getElementById('select-all-btn').textContent =
+        allChecked ? 'Seleccionar todos' : 'Deseleccionar';
+    });
+  }
 
   const newUploadZone = uploadZone.cloneNode(true);
   uploadZone.parentNode.replaceChild(newUploadZone, uploadZone);
