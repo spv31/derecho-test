@@ -1,12 +1,16 @@
 import json
 import logging
+import re as _re
 from pathlib import Path
 from typing import List, Optional
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+from src.backend.modules.summaries.export import parse_markdown, render_pdf, render_docx
 
 from src.backend.core.config import settings
 from src.backend.core.db import get_db
@@ -405,6 +409,41 @@ def regenerate_summary(
         document_ids=used_ids,
         created_at=summary.created_at,
         updated_at=summary.updated_at,
+    )
+
+
+@router.get("/api/summaries/{summary_id}/export")
+def export_summary(
+    summary_id: str,
+    format: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    if format not in ("pdf", "docx"):
+        raise HTTPException(status_code=422, detail="Format must be 'pdf' or 'docx'")
+
+    summary = _get_user_summary(summary_id, user, db)
+    blocks = parse_markdown(summary.content)
+
+    if format == "pdf":
+        data = render_pdf(blocks, summary.title)
+        media_type = "application/pdf"
+        ext = "pdf"
+    else:
+        data = render_docx(blocks, summary.title)
+        media_type = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        ext = "docx"
+
+    # Sanitizar título para nombre de fichero (solo ASCII)
+    safe_title = _re.sub(r'[^\x00-\x7F]', '', summary.title).strip()[:80] or "resumen"
+    safe_title = _re.sub(r'[^\w\s-]', '', safe_title)
+    safe_title = _re.sub(r'\s+', '_', safe_title)
+    filename = f"{safe_title}.{ext}"
+
+    return Response(
+        content=data,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 

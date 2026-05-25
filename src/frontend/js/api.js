@@ -162,3 +162,39 @@ export async function deleteSummary(id) {
     method: 'DELETE',
   }, 'summary');
 }
+
+export async function exportSummary(summaryId, format) {
+  try {
+    const res = await fetch(`/api/summaries/${summaryId}/export?format=${format}`, {
+      headers: { 'Authorization': `Bearer ${state.token}` },
+    });
+    if (res.status === 401 && state.token) {
+      localStorage.removeItem('session_token');
+      localStorage.removeItem('user_email');
+      state.token = null;
+      state.userEmail = '';
+      window.dispatchEvent(new CustomEvent('auth:expired'));
+      return;
+    }
+    if (!res.ok) {
+      showToast('Error al exportar el resumen', 'error');
+      return;
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const filenameMatch = disposition.match(/filename="?(.+?)"?$/);
+    const filename = filenameMatch ? filenameMatch[1] : `resumen.${format}`;
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  } catch (err) {
+    console.error('Export error:', err);
+    showToast('Error de red al exportar', 'error');
+  }
+}

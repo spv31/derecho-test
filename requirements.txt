@@ -11,3 +11,5 @@ pymupdf
 python-pptx
 httpx
 pytest
+fpdf2
+python-docx
