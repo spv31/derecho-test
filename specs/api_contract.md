@@ -94,7 +94,9 @@ Acceder a un recurso de otro usuario => 404 (no 403, para no filtrar existencia)
   - Response 502: error del proveedor LLM (timeout, 429, 500, salida inválida)
 
 - GET /api/subjects/:subject_id/exams
-  - Response 200: Array<{ id, title, question_count, created_at }>
+  - Response 200: Array<{ id, title, question_count, created_at, last_result }>
+
+    last_result es null si no hay intentos, o { score, total, percentage } del último
 
 - GET /api/exams/:exam_id
   - Response 200: objeto examen completo (para renderizar y corregir en el frontend)
@@ -110,3 +112,22 @@ Acceder a un recurso de otro usuario => 404 (no 403, para no filtrar existencia)
 
 - DELETE /api/exams/:exam_id
   - Response 204 / 404
+
+## Resultados de exámenes
+
+- POST /api/exams/:exam_id/results
+  - Request: { "answers": [integer|null, ...] }
+
+    (array de índices seleccionados, misma longitud que questions del examen.
+     null si la pregunta no fue respondida)
+
+  - Response 201: { id, exam_id, score, total, percentage, answers, created_at }
+
+  - Response 404: examen no existe o no es del usuario
+
+  - Response 422: longitud de answers no coincide con question_count
+
+- GET /api/exams/:exam_id/results
+  - Response 200: Array<{ id, score, total, percentage, answers, created_at }>
+
+    (intentos del usuario para este examen, ordenados por fecha descendente)

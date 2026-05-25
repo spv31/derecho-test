@@ -37,3 +37,13 @@ CREATE TABLE
     payload_json TEXT NOT NULL, -- objeto examen completo serializado
     created_at TEXT NOT NULL DEFAULT (datetime ('now'))
   );
+
+CREATE TABLE
+  exam_results (
+    id TEXT PRIMARY KEY,
+    exam_id TEXT NOT NULL REFERENCES exams (id) ON DELETE CASCADE,
+    score INTEGER NOT NULL, -- aciertos
+    total INTEGER NOT NULL, -- total de preguntas
+    answers_json TEXT NOT NULL, -- JSON array de índices seleccionados [0, 2, null, 1, ...]
+    created_at TEXT NOT NULL DEFAULT (datetime ('now'))
+  );
