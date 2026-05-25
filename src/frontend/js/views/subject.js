@@ -138,7 +138,7 @@ function renderDocSelector(docs) {
     `;
     container.appendChild(label);
   });
-  const selectAllRow = document.getElementById('select-all-row');
+  const selectAllRow = $('#select-all-row');
   if (selectAllRow) {
     if (ready.length > 0) {
       selectAllRow.classList.remove('hidden');
@@ -147,7 +147,7 @@ function renderDocSelector(docs) {
       selectAllRow.classList.add('hidden');
       selectAllRow.classList.remove('flex');
     }
-    const btn = document.getElementById('select-all-btn');
+    const btn = $('#select-all-btn');
     if (btn) btn.textContent = 'Seleccionar todos';
   }
 }
@@ -183,15 +183,15 @@ function wireSubjectEvents() {
 
   if (!uploadZone || !fileInput) return;
 
-  const selectAllBtn = document.getElementById('select-all-btn');
+  const selectAllBtn = $('#select-all-btn');
   if (selectAllBtn) {
     const freshBtn = selectAllBtn.cloneNode(true);
     selectAllBtn.parentNode.replaceChild(freshBtn, selectAllBtn);
-    document.getElementById('select-all-btn').addEventListener('click', () => {
-      const checkboxes = Array.from(document.querySelectorAll('.doc-checkbox'));
+    $('#select-all-btn').addEventListener('click', () => {
+      const checkboxes = Array.from($$('.doc-checkbox'));
       const allChecked = checkboxes.every(cb => cb.checked);
       checkboxes.forEach(cb => { cb.checked = !allChecked; });
-      document.getElementById('select-all-btn').textContent =
+      $('#select-all-btn').textContent =
         allChecked ? 'Seleccionar todos' : 'Deseleccionar';
     });
   }
