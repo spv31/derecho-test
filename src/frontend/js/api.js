@@ -102,3 +102,17 @@ export async function deleteExam(id) {
     method: 'DELETE',
   }, 'exam');
 }
+
+export async function renameSubject(id, name) {
+  return apiFetch(`/api/subjects/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ name }),
+  }, 'subject');
+}
+
+export async function renameExam(id, title) {
+  return apiFetch(`/api/exams/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ title }),
+  }, 'exam');
+}

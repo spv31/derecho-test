@@ -304,3 +304,43 @@ class TestExams:
         with use_exams_overrides():
             resp = client.delete("/api/exams/nonexistent", headers={"Authorization": "Bearer test"})
         assert resp.status_code == 404
+
+    def test_rename_exam(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            res = client.patch(f"/api/exams/{exam_id}", json={"title": "Nuevo título"})
+            assert res.status_code == 200
+            data = res.json()
+            assert data["title"] == "Nuevo título"
+            assert data["id"] == exam_id
+            detail = client.get(f"/api/exams/{exam_id}")
+            assert detail.json()["title"] == "Nuevo título"
+
+    def test_rename_exam_empty_title_422(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            res = client.patch(f"/api/exams/{exam_id}", json={"title": "   "})
+            assert res.status_code == 422
+
+    def test_rename_exam_other_user_404(self, client):
+        with use_exams_overrides():
+            db = TestingSessionLocal()
+            db.add(User(id="user-2", google_sub="sub-2", email="other@test.com", name="Other", created_at="2024-01-01"))
+            db.add(Subject(id="subj-2", user_id="user-2", name="Other Math", created_at="2024-01-01"))
+            db.add(Exam(id="exam-other", subject_id="subj-2", title="Other Exam",
+                        question_count=1, payload_json='{"questions":[]}', created_at="2024-01-01"))
+            db.commit()
+            db.close()
+            res = client.patch("/api/exams/exam-other", json={"title": "Hacked"})
+            assert res.status_code == 404
+
+    def test_rename_nonexistent_exam_404(self, client):
+        with use_exams_overrides():
+            res = client.patch("/api/exams/nonexistent", json={"title": "X"})
+            assert res.status_code == 404

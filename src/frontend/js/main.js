@@ -1,6 +1,6 @@
 import { state } from './state.js?v=1';
 import { $, showConfirmModal, showToast } from './utils.js?v=1';
-import { getSubjects, deleteSubject } from './api.js?v=1';
+import { getSubjects, deleteSubject, renameSubject } from './api.js?v=1';
 import { renderLogin } from './views/login.js?v=1';
 import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js?v=1';
 import { renderSubjectsList } from './views/sidebar.js?v=1';
@@ -62,6 +62,68 @@ function wireSidebarClicks() {
         state.currentSubjectName = null;
         showEmptyState();
       }
+      return;
+    }
+
+    const renameBtn = e.target.closest('[data-action="rename-subject"]');
+    if (renameBtn) {
+      e.stopPropagation();
+      const subjectItem = renameBtn.closest('[data-nav="subject"]');
+      if (!subjectItem) return;
+      const id = subjectItem.dataset.id;
+      const nameSpan = subjectItem.querySelector('span.truncate');
+      if (!nameSpan) return;
+      const currentName = nameSpan.textContent;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = currentName;
+      input.className = 'bg-brand-bg border border-brand-accent rounded px-2 py-0.5 text-sm text-brand-text focus:ring-2 focus:ring-brand-accent outline-none flex-1 min-w-0';
+      nameSpan.replaceWith(input);
+      input.focus();
+      input.select();
+
+      let saved = false;
+      async function save() {
+        if (saved) return;
+        saved = true;
+        const newName = input.value.trim();
+        if (!newName || newName === currentName) {
+          const span = document.createElement('span');
+          span.className = 'text-sm truncate flex-1';
+          span.textContent = currentName;
+          input.replaceWith(span);
+          return;
+        }
+        const result = await renameSubject(id, newName);
+        if (result) {
+          showToast('Asignatura renombrada', 'success');
+          if (state.currentSubjectId === id) {
+            state.currentSubjectName = newName;
+          }
+          await refreshSidebar();
+          if (state.currentSubjectId === id) {
+            await showSubject(id, newName);
+          }
+        } else {
+          const span = document.createElement('span');
+          span.className = 'text-sm truncate flex-1';
+          span.textContent = currentName;
+          input.replaceWith(span);
+        }
+      }
+
+      input.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); save(); }
+        else if (ev.key === 'Escape') {
+          saved = true;
+          const span = document.createElement('span');
+          span.className = 'text-sm truncate flex-1';
+          span.textContent = currentName;
+          input.replaceWith(span);
+        }
+      });
+      input.addEventListener('blur', () => save());
       return;
     }
 

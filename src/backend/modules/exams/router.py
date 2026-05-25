@@ -39,6 +39,10 @@ class GenerateRequest(BaseModel):
     question_count: int
 
 
+class ExamRename(BaseModel):
+    title: str
+
+
 QWEN_SCHEMA_PATH = Path(__file__).resolve().parents[4] / "specs" / "qwen_schema.json"
 SYSTEM_PROMPT = (
     "Eres un generador de exámenes tipo test para estudiantes universitarios. "
@@ -274,6 +278,34 @@ def get_exam(
         question_count=exam.question_count,
         created_at=exam.created_at,
         questions=payload.get("questions", []),
+    )
+
+
+@router.patch("/api/exams/{exam_id}")
+def rename_exam(
+    exam_id: str,
+    body: ExamRename,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    if not body.title or not body.title.strip():
+        raise HTTPException(status_code=422, detail="Title must not be empty")
+    exam = (
+        db.query(Exam)
+        .join(Subject, Exam.subject_id == Subject.id)
+        .filter(Exam.id == exam_id, Subject.user_id == user.id)
+        .first()
+    )
+    if not exam:
+        raise HTTPException(status_code=404, detail="Not Found")
+    exam.title = body.title.strip()
+    db.commit()
+    db.refresh(exam)
+    return ExamListItem(
+        id=exam.id,
+        title=exam.title,
+        question_count=exam.question_count,
+        created_at=exam.created_at,
     )
 
 

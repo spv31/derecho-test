@@ -1,6 +1,6 @@
 import { state } from '../state.js?v=1';
 import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal, formatDate } from '../utils.js?v=1';
-import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam } from '../api.js?v=1';
+import { getDocuments, uploadDocument, deleteDocument, getExams, generateExam, deleteExam, renameExam } from '../api.js?v=1';
 
 export async function showSubject(subjectId, subjectName) {
   state.currentSubjectId = subjectId;
@@ -156,15 +156,23 @@ function renderExams(exams) {
   empty.classList.add('hidden');
   exams.forEach(exam => {
     const el = document.createElement('div');
-    el.className = 'bg-brand-surface border border-brand-border rounded-lg px-4 py-3 flex items-center justify-between hover:border-brand-accent/50 transition-colors cursor-pointer hover:bg-brand-accent/5';
+    el.className = 'group bg-brand-surface border border-brand-border rounded-lg px-4 py-3 flex items-center justify-between hover:border-brand-accent/50 transition-colors cursor-pointer hover:bg-brand-accent/5';
     el.setAttribute('data-nav', 'exam');
     el.setAttribute('data-exam-id', exam.id);
     el.innerHTML = `
-      <div>
-        <h4 class="text-sm font-medium">${escapeHtml(exam.title)}</h4>
-        <p class="text-xs text-brand-muted mt-0.5">${exam.question_count} preguntas &middot; ${formatDate(exam.created_at)}</p>
+      <div class="min-w-0 flex-1">
+        <h4 class="text-sm font-medium truncate">${escapeHtml(exam.title)}</h4>
+        <p class="text-xs text-brand-muted mt-1.5">${exam.question_count} preguntas &middot; ${formatDate(exam.created_at)}</p>
       </div>
-      <svg class="w-4 h-4 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      <div class="flex items-center gap-1 shrink-0">
+        <button class="text-brand-muted hover:text-brand-accent transition-opacity duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 rounded" data-action="rename-exam" data-id="${exam.id}" title="Renombrar examen">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487z"/></svg>
+        </button>
+        <button class="text-brand-muted hover:text-brand-error transition-opacity duration-150 opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1 rounded" data-action="delete-exam" data-id="${exam.id}" data-title="${escapeHtml(exam.title)}" title="Eliminar examen">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+        </button>
+        <svg class="w-4 h-4 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </div>
     `;
     container.appendChild(el);
   });
@@ -266,6 +274,80 @@ function wireSubjectEvents() {
       await deleteDocument(id);
       showToast('Documento eliminado', 'success');
       await loadSubjectData();
+    });
+  });
+
+  document.querySelectorAll('[data-action="delete-exam"]').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      const title = btn.dataset.title || 'este examen';
+      const confirmed = await showConfirmModal({
+        title: 'Eliminar examen',
+        message: `¿Estás seguro de que quieres eliminar "${title}"? Esta acción no se puede deshacer.`,
+        confirmText: 'Eliminar',
+        confirmClass: 'bg-brand-error hover:bg-red-700',
+      });
+      if (!confirmed) return;
+      await deleteExam(id);
+      showToast('Examen eliminado', 'success');
+      await loadSubjectData();
+    });
+  });
+
+  document.querySelectorAll('[data-action="rename-exam"]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const examId = btn.dataset.id;
+      const examRow = btn.closest('[data-nav="exam"]');
+      if (!examRow) return;
+      const titleEl = examRow.querySelector('h4');
+      if (!titleEl) return;
+      const currentTitle = titleEl.textContent;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = currentTitle;
+      input.className = 'bg-brand-bg border border-brand-accent rounded px-2 py-1 text-sm text-brand-text focus:ring-2 focus:ring-brand-accent outline-none w-full';
+      titleEl.replaceWith(input);
+      input.focus();
+      input.select();
+
+      let saved = false;
+      async function save() {
+        if (saved) return;
+        saved = true;
+        const newTitle = input.value.trim();
+        if (!newTitle || newTitle === currentTitle) {
+          const h4 = document.createElement('h4');
+          h4.className = 'text-sm font-medium truncate';
+          h4.textContent = currentTitle;
+          input.replaceWith(h4);
+          return;
+        }
+        const result = await renameExam(examId, newTitle);
+        if (result) {
+          showToast('Examen renombrado', 'success');
+          await loadSubjectData();
+        } else {
+          const h4 = document.createElement('h4');
+          h4.className = 'text-sm font-medium truncate';
+          h4.textContent = currentTitle;
+          input.replaceWith(h4);
+        }
+      }
+
+      input.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') { ev.preventDefault(); save(); }
+        else if (ev.key === 'Escape') {
+          saved = true;
+          const h4 = document.createElement('h4');
+          h4.className = 'text-sm font-medium truncate';
+          h4.textContent = currentTitle;
+          input.replaceWith(h4);
+        }
+      });
+      input.addEventListener('blur', () => save());
     });
   });
 }
