@@ -180,5 +180,16 @@ Acceder a un recurso de otro usuario => 404 (no 403, para no filtrar existencia)
 
   - Response 502: error del proveedor LLM
 
+- GET /api/summaries/:summary_id/export?format=pdf|docx
+  - Response 200: fichero binario
+
+    Content-Type: application/pdf o application/vnd.openxmlformats-officedocument.wordprocessingml.document
+
+    Content-Disposition: attachment; filename="<title_sanitizado>.<ext>"
+
+  - Response 404 si no existe o no es del usuario
+
+  - Response 422 si format no es "pdf" ni "docx"
+
 - DELETE /api/summaries/:summary_id
   - Response 204 / 404
