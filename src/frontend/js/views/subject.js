@@ -1,10 +1,10 @@
-import { state } from '../state.js?v=1';
-import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal, formatDate } from '../utils.js?v=1';
+import { state } from '../state.js?v=2';
+import { $, $$, escapeHtml, showToast, showLoading, showConfirmModal, formatDate } from '../utils.js?v=2';
 import {
   getDocuments, uploadDocument, deleteDocument,
   getExams, generateExam, deleteExam, renameExam,
   getSummaries, generateSummary, deleteSummary, renameSummary,
-} from '../api.js?v=1';
+} from '../api.js?v=2';
 
 export async function showSubject(subjectId, subjectName) {
   state.currentSubjectId = subjectId;
