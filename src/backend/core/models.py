@@ -36,6 +36,7 @@ class Subject(Base):
     user = relationship("User", back_populates="subjects")
     documents = relationship("Document", back_populates="subject", cascade="all, delete-orphan")
     exams = relationship("Exam", back_populates="subject", cascade="all, delete-orphan")
+    summaries = relationship("Summary", back_populates="subject", cascade="all, delete-orphan")
 
 
 class Document(Base):
@@ -77,3 +78,17 @@ class ExamResult(Base):
     created_at = Column(String, nullable=False, default=_utcnow)
 
     exam = relationship("Exam", back_populates="results")
+
+
+class Summary(Base):
+    __tablename__ = "summaries"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    subject_id = Column(String, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String, nullable=False)
+    content = Column(Text, nullable=False)
+    document_ids_json = Column(Text, nullable=False)
+    created_at = Column(String, nullable=False, default=_utcnow)
+    updated_at = Column(String, nullable=False, default=_utcnow)
+
+    subject = relationship("Subject", back_populates="summaries")

@@ -6,6 +6,7 @@ import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js?v=1
 import { renderSubjectsList } from './views/sidebar.js?v=1';
 import { showSubject } from './views/subject.js?v=1';
 import { showExam } from './views/exam.js?v=1';
+import { showSummary } from './views/summary.js?v=1';
 
 /* ── Boot ── */
 
@@ -60,6 +61,7 @@ function wireSidebarClicks() {
       if (state.currentSubjectId === id) {
         state.currentSubjectId = null;
         state.currentSubjectName = null;
+        state.currentSummaryId = null;
         showEmptyState();
       }
       return;
@@ -160,6 +162,9 @@ function wireNavigation() {
     } else if (action === 'exam') {
       const examId = nav.dataset.examId;
       if (examId) navigateToExam(examId);
+    } else if (action === 'summary') {
+      const summaryId = nav.dataset.summaryId;
+      if (summaryId) navigateToSummary(summaryId);
     }
   });
 
@@ -172,6 +177,10 @@ function wireNavigation() {
   window.addEventListener('nav:exam', (e) => {
     if (e.detail.examId) navigateToExam(e.detail.examId);
   });
+
+  window.addEventListener('nav:summary', (e) => {
+    if (e.detail.summaryId) navigateToSummary(e.detail.summaryId);
+  });
 }
 
 /* ── Helpers ── */
@@ -182,12 +191,17 @@ async function navigateToSubject(id, name) {
   state.currentExamId = null;
   state.examQuestions = [];
   state.userAnswers = [];
+  state.currentSummaryId = null;
   renderSubjectsList(state.subjects, id);
   await showSubject(id, name);
 }
 
 async function navigateToExam(examId) {
   await showExam(examId);
+}
+
+async function navigateToSummary(summaryId) {
+  await showSummary(summaryId);
 }
 
 async function refreshSidebar() {

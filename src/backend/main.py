@@ -11,6 +11,7 @@ from src.backend.modules.auth.router import router as auth_router
 from src.backend.modules.subjects.router import router as subjects_router
 from src.backend.modules.documents.router import router as documents_router
 from src.backend.modules.exams.router import router as exams_router
+from src.backend.modules.summaries.router import router as summaries_router
 
 app = FastAPI(title="NaN Quiz Generator")
 
@@ -18,6 +19,8 @@ app = FastAPI(title="NaN Quiz Generator")
 RATE_LIMIT_RULES: dict[str, tuple[int, int, str]] = {
     "auth_google": (5, 60, "post_/api/auth/google"),
     "exams_generate": (3, 60, "/exams/generate"),
+    "summaries_generate": (3, 60, "/summaries/generate"),
+    "summaries_regenerate": (3, 60, "/regenerate"),
 }
 
 # Module-level rate limit history for testability
@@ -75,6 +78,7 @@ app.include_router(auth_router)
 app.include_router(subjects_router)
 app.include_router(documents_router)
 app.include_router(exams_router)
+app.include_router(summaries_router)
 
 app.mount("/", StaticFiles(directory="src/frontend", html=True), name="frontend")
 

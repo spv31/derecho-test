@@ -6,5 +6,6 @@ export const state = {
   currentExamId: null,
   examQuestions: [],
   userAnswers: [],
+  currentSummaryId: null,
   subjects: [],
 };

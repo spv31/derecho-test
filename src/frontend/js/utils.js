@@ -101,20 +101,22 @@ export const ERROR_MESSAGES = {
     subject: 'Esta asignatura ya no existe.',
     document: 'Este documento ya no existe.',
     exam: 'Este examen ya no existe.',
+    summary: 'Este resumen ya no existe.',
   },
   413: {
     upload: 'El archivo es demasiado grande. El máximo es 25 MB.',
   },
   422: {
     default: 'Faltan datos o son incorrectos.',
-    generate: 'Selecciona al menos un documento y entre 1 y 30 preguntas.',
+    generate: 'Selecciona al menos un documento.',
+    summary: 'El título no puede estar vacío.',
   },
   429: {
     default: 'Demasiadas peticiones. Espera un momento e inténtalo de nuevo.',
   },
   502: {
     default: 'El servicio no responde. Inténtalo en unos segundos.',
-    generate: 'No hemos podido generar el examen. Inténtalo de nuevo en unos segundos.',
+    generate: 'No hemos podido generar el contenido. Inténtalo de nuevo en unos segundos.',
   },
   500: {
     default: 'Ha ocurrido un error. Inténtalo más tarde.',

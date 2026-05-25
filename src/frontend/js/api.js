@@ -127,3 +127,38 @@ export async function submitResult(examId, answers) {
 export async function getExamResults(examId) {
   return apiFetch(`/api/exams/${examId}/results`);
 }
+
+export async function getSummaries(subjectId) {
+  return apiFetch(`/api/subjects/${subjectId}/summaries`);
+}
+
+export async function generateSummary(subjectId, documentIds) {
+  return apiFetch(`/api/subjects/${subjectId}/summaries/generate`, {
+    method: 'POST',
+    body: JSON.stringify({ document_ids: documentIds }),
+  }, 'generate');
+}
+
+export async function getSummary(summaryId) {
+  return apiFetch(`/api/summaries/${summaryId}`, {}, 'summary');
+}
+
+export async function renameSummary(id, title) {
+  return apiFetch(`/api/summaries/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ title }),
+  }, 'summary');
+}
+
+export async function regenerateSummary(id, documentIds) {
+  return apiFetch(`/api/summaries/${id}/regenerate`, {
+    method: 'POST',
+    body: JSON.stringify(documentIds ? { document_ids: documentIds } : {}),
+  }, 'generate');
+}
+
+export async function deleteSummary(id) {
+  return apiFetch(`/api/summaries/${id}`, {
+    method: 'DELETE',
+  }, 'summary');
+}
