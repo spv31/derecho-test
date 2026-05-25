@@ -1,5 +1,5 @@
-import { $ } from '../utils.js?v=2';
-import { initLogin } from '../auth.js?v=2';
+import { $ } from '../utils.js?v=3';
+import { initLogin } from '../auth.js?v=3';
 
 export function renderLogin() {
   $('#view-login').classList.remove('hidden');

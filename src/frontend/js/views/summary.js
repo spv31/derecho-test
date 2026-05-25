@@ -1,7 +1,7 @@
-import { state } from '../state.js?v=2';
-import { $, escapeHtml, showLoading, showToast, showConfirmModal, formatDate } from '../utils.js?v=2';
-import { getSummary, renameSummary, regenerateSummary, deleteSummary, exportSummary } from '../api.js?v=2';
-import { renderMarkdown } from '../markdown.js?v=2';
+import { state } from '../state.js?v=3';
+import { $, escapeHtml, showLoading, showToast, showConfirmModal, formatDate } from '../utils.js?v=3';
+import { getSummary, renameSummary, regenerateSummary, deleteSummary, exportSummary } from '../api.js?v=3';
+import { renderMarkdown } from '../markdown.js?v=3';
 
 export async function showSummary(summaryId) {
   state.currentSummaryId = summaryId;

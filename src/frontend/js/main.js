@@ -1,12 +1,12 @@
-import { state } from './state.js?v=2';
-import { $, showConfirmModal, showToast } from './utils.js?v=2';
-import { getSubjects, deleteSubject, renameSubject } from './api.js?v=2';
-import { renderLogin } from './views/login.js?v=2';
-import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js?v=2';
-import { renderSubjectsList } from './views/sidebar.js?v=2';
-import { showSubject } from './views/subject.js?v=2';
-import { showExam } from './views/exam.js?v=2';
-import { showSummary } from './views/summary.js?v=2';
+import { state } from './state.js?v=3';
+import { $, showConfirmModal, showToast } from './utils.js?v=3';
+import { getSubjects, deleteSubject, renameSubject } from './api.js?v=3';
+import { renderLogin } from './views/login.js?v=3';
+import { renderAppLayout, setUserInfo, showEmptyState } from './views/app.js?v=3';
+import { renderSubjectsList } from './views/sidebar.js?v=3';
+import { showSubject } from './views/subject.js?v=3';
+import { showExam } from './views/exam.js?v=3';
+import { showSummary } from './views/summary.js?v=3';
 
 /* ── Boot ── */
 
