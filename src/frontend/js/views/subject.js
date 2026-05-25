@@ -36,11 +36,11 @@ function getSubjectHtml(subjectName) {
       <div class="mb-8">
         <h3 class="font-display text-sm font-semibold text-brand-muted mb-3">Generar examen</h3>
         <div class="bg-brand-surface border border-brand-border rounded-xl p-5">
-          <p class="text-sm text-brand-muted mb-4">Selecciona los documentos que quieres incluir en el examen</p>
+          <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 mb-4">
+            <p class="text-sm text-brand-muted">Selecciona los documentos que quieres incluir en el examen</p>
+            <button id="select-all-btn" class="hidden text-xs font-medium text-brand-accent hover:text-brand-accent-h transition-colors whitespace-nowrap">Seleccionar todos</button>
+          </div>
           <div class="mb-5">
-            <div id="select-all-row" class="hidden justify-end mb-2">
-              <button id="select-all-btn" class="text-xs text-brand-accent hover:underline transition-colors">Seleccionar todos</button>
-            </div>
             <div id="doc-selector" class="space-y-2 max-h-56 overflow-y-auto"></div>
             <p id="doc-selector-empty" class="text-sm text-brand-muted/60 py-4 text-center">Sube documentos para poder generar exámenes</p>
           </div>
@@ -138,17 +138,10 @@ function renderDocSelector(docs) {
     `;
     container.appendChild(label);
   });
-  const selectAllRow = $('#select-all-row');
-  if (selectAllRow) {
-    if (ready.length > 0) {
-      selectAllRow.classList.remove('hidden');
-      selectAllRow.classList.add('flex');
-    } else {
-      selectAllRow.classList.add('hidden');
-      selectAllRow.classList.remove('flex');
-    }
-    const btn = $('#select-all-btn');
-    if (btn) btn.textContent = 'Seleccionar todos';
+  const selectAllBtn = $('#select-all-btn');
+  if (selectAllBtn) {
+    selectAllBtn.classList.toggle('hidden', ready.length === 0);
+    selectAllBtn.textContent = 'Seleccionar todos';
   }
 }
 
