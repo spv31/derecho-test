@@ -116,3 +116,14 @@ export async function renameExam(id, title) {
     body: JSON.stringify({ title }),
   }, 'exam');
 }
+
+export async function submitResult(examId, answers) {
+  return apiFetch(`/api/exams/${examId}/results`, {
+    method: 'POST',
+    body: JSON.stringify({ answers }),
+  }, 'exam');
+}
+
+export async function getExamResults(examId) {
+  return apiFetch(`/api/exams/${examId}/results`);
+}

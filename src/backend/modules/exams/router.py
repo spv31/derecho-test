@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from src.backend.core.config import settings
 from src.backend.core.db import get_db
-from src.backend.core.models import Document, Exam, Subject, User
+from src.backend.core.models import Document, Exam, ExamResult, Subject, User
 from src.backend.modules.auth.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -18,11 +18,32 @@ logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(get_current_user)])
 
 
+class ExamLastResult(BaseModel):
+    score: int
+    total: int
+    percentage: int
+
+
+class SubmitResultRequest(BaseModel):
+    answers: list
+
+
+class ExamResultOut(BaseModel):
+    id: str
+    exam_id: str
+    score: int
+    total: int
+    percentage: int
+    answers: list
+    created_at: str
+
+
 class ExamListItem(BaseModel):
     id: str
     title: str
     question_count: int
     created_at: str
+    last_result: ExamLastResult | None = None
 
 
 class ExamDetail(BaseModel):
@@ -199,10 +220,35 @@ def list_exams(
 ):
     subject = _get_user_subject(subject_id, user, db)
     exams = db.query(Exam).filter(Exam.subject_id == subject.id).all()
-    return [
-        ExamListItem(id=e.id, title=e.title, question_count=e.question_count, created_at=e.created_at)
-        for e in exams
-    ]
+
+    exam_ids = [e.id for e in exams]
+    results = (
+        db.query(ExamResult)
+        .filter(ExamResult.exam_id.in_(exam_ids))
+        .order_by(ExamResult.created_at.desc(), ExamResult.id.desc())
+        .all()
+    ) if exam_ids else []
+
+    latest_by_exam = {}
+    for r in results:
+        if r.exam_id not in latest_by_exam:
+            latest_by_exam[r.exam_id] = r
+
+    items = []
+    for e in exams:
+        lr = latest_by_exam.get(e.id)
+        last_result = None
+        if lr:
+            last_result = ExamLastResult(
+                score=lr.score,
+                total=lr.total,
+                percentage=round(lr.score / lr.total * 100) if lr.total > 0 else 0,
+            )
+        items.append(ExamListItem(
+            id=e.id, title=e.title, question_count=e.question_count,
+            created_at=e.created_at, last_result=last_result,
+        ))
+    return items
 
 
 @router.post("/api/subjects/{subject_id}/exams/generate", status_code=201)
@@ -325,3 +371,89 @@ def delete_exam(
         raise HTTPException(status_code=404, detail="Not Found")
     db.delete(exam)
     db.commit()
+
+
+@router.post("/api/exams/{exam_id}/results", status_code=201)
+def submit_result(
+    exam_id: str,
+    body: SubmitResultRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    exam = (
+        db.query(Exam)
+        .join(Subject, Exam.subject_id == Subject.id)
+        .filter(Exam.id == exam_id, Subject.user_id == user.id)
+        .first()
+    )
+    if not exam:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    if len(body.answers) != exam.question_count:
+        raise HTTPException(
+            status_code=422,
+            detail=f"answers length ({len(body.answers)}) does not match question_count ({exam.question_count})",
+        )
+
+    payload = json.loads(exam.payload_json)
+    questions = payload.get("questions", [])
+    score = 0
+    for i, ans in enumerate(body.answers):
+        if ans is not None and i < len(questions):
+            if ans == questions[i].get("correct_index"):
+                score += 1
+
+    result = ExamResult(
+        exam_id=exam.id,
+        score=score,
+        total=exam.question_count,
+        answers_json=json.dumps(body.answers),
+    )
+    db.add(result)
+    db.commit()
+    db.refresh(result)
+
+    return ExamResultOut(
+        id=result.id,
+        exam_id=result.exam_id,
+        score=result.score,
+        total=result.total,
+        percentage=round(result.score / result.total * 100) if result.total > 0 else 0,
+        answers=body.answers,
+        created_at=result.created_at,
+    )
+
+
+@router.get("/api/exams/{exam_id}/results")
+def list_results(
+    exam_id: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    exam = (
+        db.query(Exam)
+        .join(Subject, Exam.subject_id == Subject.id)
+        .filter(Exam.id == exam_id, Subject.user_id == user.id)
+        .first()
+    )
+    if not exam:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    results = (
+        db.query(ExamResult)
+        .filter(ExamResult.exam_id == exam.id)
+        .order_by(ExamResult.created_at.desc(), ExamResult.id.desc())
+        .all()
+    )
+    return [
+        ExamResultOut(
+            id=r.id,
+            exam_id=r.exam_id,
+            score=r.score,
+            total=r.total,
+            percentage=round(r.score / r.total * 100) if r.total > 0 else 0,
+            answers=json.loads(r.answers_json),
+            created_at=r.created_at,
+        )
+        for r in results
+    ]

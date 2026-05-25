@@ -63,3 +63,17 @@ class Exam(Base):
     created_at = Column(String, nullable=False, default=_utcnow)
 
     subject = relationship("Subject", back_populates="exams")
+    results = relationship("ExamResult", back_populates="exam", cascade="all, delete-orphan")
+
+
+class ExamResult(Base):
+    __tablename__ = "exam_results"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    exam_id = Column(String, ForeignKey("exams.id", ondelete="CASCADE"), nullable=False)
+    score = Column(Integer, nullable=False)
+    total = Column(Integer, nullable=False)
+    answers_json = Column(Text, nullable=False)
+    created_at = Column(String, nullable=False, default=_utcnow)
+
+    exam = relationship("Exam", back_populates="results")

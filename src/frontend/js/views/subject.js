@@ -161,7 +161,16 @@ function renderExams(exams) {
     el.setAttribute('data-exam-id', exam.id);
     el.innerHTML = `
       <div class="min-w-0 flex-1">
-        <h4 class="text-sm font-medium truncate">${escapeHtml(exam.title)}</h4>
+        <div class="flex items-center gap-2">
+          <h4 class="text-sm font-medium truncate">${escapeHtml(exam.title)}</h4>
+          ${exam.last_result ? `<span class="inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded-full shrink-0 ${
+            exam.last_result.percentage >= 70
+              ? 'bg-emerald-500/15 text-emerald-400'
+              : exam.last_result.percentage >= 40
+                ? 'bg-amber-500/15 text-amber-400'
+                : 'bg-red-500/15 text-brand-error'
+          }">${exam.last_result.percentage}%</span>` : ''}
+        </div>
         <p class="text-xs text-brand-muted mt-1.5">${exam.question_count} preguntas &middot; ${formatDate(exam.created_at)}</p>
       </div>
       <div class="flex items-center gap-1 shrink-0">

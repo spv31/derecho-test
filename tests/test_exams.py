@@ -11,7 +11,7 @@ from sqlalchemy.pool import StaticPool
 
 from src.backend.main import app
 from src.backend.core.db import Base, get_db
-from src.backend.core.models import Document, Exam, Subject, User
+from src.backend.core.models import Document, Exam, ExamResult, Subject, User
 from src.backend.modules.auth.dependencies import get_current_user
 
 SAMPLE_EXAM_PAYLOAD = {
@@ -344,3 +344,121 @@ class TestExams:
         with use_exams_overrides():
             res = client.patch("/api/exams/nonexistent", json={"title": "X"})
             assert res.status_code == 404
+
+    def test_submit_result_201(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            res = client.post(f"/api/exams/{exam_id}/results",
+                              json={"answers": [1, 2]})
+            assert res.status_code == 201
+            data = res.json()
+            assert data["exam_id"] == exam_id
+            assert data["score"] == 2
+            assert data["total"] == 2
+            assert data["percentage"] == 100
+            assert data["answers"] == [1, 2]
+            assert "id" in data
+            assert "created_at" in data
+
+    def test_submit_result_partial_score(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            res = client.post(f"/api/exams/{exam_id}/results",
+                              json={"answers": [1, 0]})
+            assert res.status_code == 201
+            data = res.json()
+            assert data["score"] == 1
+            assert data["total"] == 2
+            assert data["percentage"] == 50
+
+    def test_submit_result_with_nulls(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            res = client.post(f"/api/exams/{exam_id}/results",
+                              json={"answers": [None, 2]})
+            assert res.status_code == 201
+            assert res.json()["score"] == 1
+
+    def test_submit_result_wrong_length_422(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            res = client.post(f"/api/exams/{exam_id}/results",
+                              json={"answers": [1]})
+            assert res.status_code == 422
+
+    def test_submit_result_other_user_404(self, client):
+        with use_exams_overrides():
+            db = TestingSessionLocal()
+            db.add(User(id="user-2", google_sub="sub-2", email="other@test.com", name="Other", created_at="2024-01-01"))
+            db.add(Subject(id="subj-2", user_id="user-2", name="Other Math", created_at="2024-01-01"))
+            db.add(Exam(id="exam-other", subject_id="subj-2", title="Other",
+                        question_count=1, payload_json='{"questions":[{"question":"Q","options":["A","B","C"],"explanation":"E","correct_index":0}]}',
+                        created_at="2024-01-01"))
+            db.commit()
+            db.close()
+            res = client.post("/api/exams/exam-other/results", json={"answers": [0]})
+            assert res.status_code == 404
+
+    def test_list_results(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            client.post(f"/api/exams/{exam_id}/results", json={"answers": [0, 0]})
+            client.post(f"/api/exams/{exam_id}/results", json={"answers": [1, 2]})
+            res = client.get(f"/api/exams/{exam_id}/results")
+            assert res.status_code == 200
+            data = res.json()
+            assert len(data) == 2
+            scores = {d["score"] for d in data}
+            assert scores == {0, 2}
+
+    def test_list_exams_includes_last_result(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            client.post(f"/api/exams/{exam_id}/results", json={"answers": [1, 2]})
+            res = client.get("/api/subjects/subj-1/exams")
+            assert res.status_code == 200
+            data = res.json()
+            assert len(data) == 1
+            assert data[0]["last_result"] is not None
+            assert data[0]["last_result"]["score"] == 2
+            assert data[0]["last_result"]["percentage"] == 100
+
+    def test_list_exams_no_results_null(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                client.post("/api/subjects/subj-1/exams/generate",
+                            json={"document_ids": ["doc-1"], "question_count": 2})
+            res = client.get("/api/subjects/subj-1/exams")
+            data = res.json()
+            assert data[0]["last_result"] is None
+
+    def test_delete_exam_cascades_results(self, client):
+        with use_exams_overrides():
+            with patch("src.backend.modules.exams.router._call_qwen", return_value=SAMPLE_EXAM_PAYLOAD):
+                gen = client.post("/api/subjects/subj-1/exams/generate",
+                                  json={"document_ids": ["doc-1"], "question_count": 2})
+            exam_id = gen.json()["id"]
+            client.post(f"/api/exams/{exam_id}/results", json={"answers": [1, 2]})
+            client.delete(f"/api/exams/{exam_id}")
+            db = TestingSessionLocal()
+            count = db.query(ExamResult).filter(ExamResult.exam_id == exam_id).count()
+            db.close()
+            assert count == 0
