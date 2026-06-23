@@ -1,4 +1,4 @@
-import { $, escapeHtml } from '../utils.js?v=3';
+import { $, escapeHtml } from '../utils.js?v=4';
 
 export function renderSubjectsList(subjects, activeId) {
   const container = $('#subjects-list');
