@@ -125,6 +125,13 @@ function renderExamWithResult(exam, result, allResults) {
       ${historyHtml}
 
       <div class="space-y-6 mb-6">${questionsHtml}</div>
+
+      <div class="mt-2 flex justify-center">
+        <button data-nav="back-to-subject" class="flex items-center gap-2 text-brand-muted hover:text-brand-text transition-colors text-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          Volver atrás
+        </button>
+      </div>
     </div>
   `;
 
@@ -242,4 +249,11 @@ async function submitExam() {
   viewBtn.textContent = 'Ver resultados e historial';
   viewBtn.addEventListener('click', () => showExam(state.currentExamId));
   $('#exam-actions').appendChild(viewBtn);
+
+  const bottomBack = document.createElement('div');
+  bottomBack.className = 'mt-8 flex justify-center';
+  bottomBack.innerHTML = '<button data-nav="back-to-subject" class="flex items-center gap-2 text-brand-muted hover:text-brand-text transition-colors text-sm">' +
+    '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>' +
+    'Volver atrás</button>';
+  $('#exam-results').after(bottomBack);
 }

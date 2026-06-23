@@ -74,6 +74,8 @@ SYSTEM_PROMPT = (
     "- Los distractores (opciones incorrectas) deben ser plausibles, no absurdos.\n"
     "- No repitas preguntas ni opciones equivalentes.\n"
     "- Varía la dificultad y cubre temas distintos del material.\n"
+    "- PROHIBIDO hacer meta-referencias en el enunciado (ej. no uses \"Según los apuntes\" o \"En el apartado X\"). Pregunta directamente por el concepto.\n"
+    "- PROHIBIDO preguntar por citas legales exactas (números de artículos, nombres de leyes o fechas). Evalúa el concepto o su consecuencia jurídica, no su ubicación legislativa.\n"
     "- La 'explanation' debe citar o referenciar la parte concreta del material que justifica la respuesta.\n"
     "- Devuelve EXACTAMENTE la estructura JSON exigida por el schema, sin texto extra.\n"
     "- El material está delimitado entre marcadores === INICIO/FIN ===. "

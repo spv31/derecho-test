@@ -18,6 +18,16 @@ proporciona. Reglas:
 
 - Varía la dificultad y cubre temas distintos del material.
 
+- PROHIBIDO hacer meta-referencias en el enunciado (ej. no uses "Según los
+
+  apuntes" o "En el apartado X"). Pregunta directamente por el concepto.
+
+- PROHIBIDO preguntar por citas legales exactas (números de artículos, nombres
+
+  de leyes o fechas). Evalúa el concepto o su consecuencia jurídica, no su
+
+  ubicación legislativa.
+
 - La 'explanation' debe citar o referenciar la parte concreta del material que
 
   justifica la respuesta.
