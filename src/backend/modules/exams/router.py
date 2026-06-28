@@ -151,7 +151,7 @@ def _build_payload(question_count: int, material: str) -> dict:
 
 def _call_qwen(payload: dict) -> dict:
     try:
-        with httpx.Client(timeout=120.0) as client:
+        with httpx.Client(timeout=300.0) as client:
             resp = client.post(
                 f"{settings.nan_api_base_url}/chat/completions",
                 headers={
